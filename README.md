@@ -1,6 +1,6 @@
 # kripto ₿ 💰 💸 🤑
 
-[![CircleCI](https://circleci.com/gh/cshep4/ty.svg?circle-token=392e278e44f71cef63bd02bf368c439fb6b5637a)](https://circleci.com/gh/cshep4/ty)
+[![CircleCI](https://circleci.com/gh/cshep4/kripto.svg?circle-token=86c9f9b058b912c8b87271abf4f054c5ce9451a5)](https://circleci.com/gh/cshep4/kripto)
 
 ## REST API
 
