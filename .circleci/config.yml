@@ -246,10 +246,6 @@ workflows:
   deploy:
     jobs:
       - checkout-code
-          filters:
-            branches:
-              only:
-                - master
       - build:
           docker_image: cimg/go:1.14
           service_path: services/data-storer
