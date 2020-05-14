@@ -1,0 +1,268 @@
+version: 2.1
+
+jobs:
+  checkout-code:
+    machine:
+      image: ubuntu-1604:201903-01
+    steps:
+      - checkout
+
+      - persist_to_workspace:
+          root: .
+          paths: .
+
+  vendor:
+    docker:
+      - image: << parameters.docker_image >>
+    parameters:
+      docker_image:
+        type: string
+      service_path:
+        type: string
+      dependency_file:
+        type: string
+      dependencies_location:
+        type: string
+    steps:
+      - attach_workspace:
+          at: .
+
+      - run:
+          name: Check files changed
+          command: |
+            chmod +x .circleci/check-changed.sh
+            if .circleci/check-changed.sh << parameters.service_path >> ${CIRCLE_BRANCH} | grep "NO" ; then circleci step halt; fi
+
+      - restore_cache:
+          keys:
+            - dependency-cache-{{ checksum "<< parameters.service_path >>/<< parameters.dependency_file >>" }}
+
+      - run:
+          name: Install dependencies
+          command: |
+            cd << parameters.service_path >>
+            make vendor
+
+      - save_cache:
+          key: dependency-cache-{{ checksum "<< parameters.service_path >>/<< parameters.dependency_file >>" }}
+          paths:
+            - << parameters.dependencies_location >>
+
+      - persist_to_workspace:
+          root: .
+          paths: .
+
+  unit:
+    docker:
+      - image: << parameters.docker_image >>
+    parameters:
+      docker_image:
+        type: string
+      service_path:
+        type: string
+    steps:
+      - attach_workspace:
+          at: .
+
+      - run:
+          name: Check files changed
+          command: |
+            chmod +x .circleci/check-changed.sh
+            if .circleci/check-changed.sh << parameters.service_path >> ${CIRCLE_BRANCH} | grep "NO" ; then circleci step halt; fi
+
+      - run:
+          name: Run tests
+          command: |
+            cd << parameters.service_path >>
+            make test-unit
+
+  integration:
+    docker:
+      - image: << parameters.docker_image >>
+      - image: circleci/mongo:3
+    parameters:
+      docker_image:
+        type: string
+      service_path:
+        type: string
+    steps:
+      - attach_workspace:
+          at: .
+
+      - run:
+          name: Check files changed
+          command: |
+            chmod +x .circleci/check-changed.sh
+            if .circleci/check-changed.sh << parameters.service_path >> ${CIRCLE_BRANCH} | grep "NO" ; then circleci step halt; fi
+
+      - run:
+          name: Configure localstack aws credentials
+          command: |
+            cd << parameters.service_path >>
+            sudo npm i -g serverless
+            npm install
+            serverless config credentials --provider aws --key fake --secret fake --profile localstack
+
+      - run:
+          name: Run tests
+          command: |
+            cd << parameters.service_path >>
+            make test-integration
+
+  build:
+    docker:
+      - image: << parameters.docker_image >>
+    parameters:
+      docker_image:
+        type: string
+      service_path:
+        type: string
+    steps:
+      - attach_workspace:
+          at: .
+
+      - run:
+          name: Check files changed
+          command: |
+            chmod +x .circleci/check-changed.sh
+            if .circleci/check-changed.sh << parameters.service_path >> ${CIRCLE_BRANCH} | grep "NO" ; then circleci step halt; fi
+
+      - run:
+          name: Build Functions
+          command: |
+            cd << parameters.service_path >>
+            make build
+
+      - persist_to_workspace:
+          root: .
+          paths: .
+
+  deploy:
+    docker:
+      - image: circleci/node:8.10
+    parameters:
+      service_path:
+        type: string
+    steps:
+      - attach_workspace:
+          at: .
+
+      - run:
+          name: Check files changed
+          command: |
+            chmod +x .circleci/check-changed.sh
+            if .circleci/check-changed.sh << parameters.service_path >> ${CIRCLE_BRANCH} | grep "NO" ; then circleci step halt; fi
+
+      - run:
+          name: Install Serverless CLI, Configure Profile, Deploy
+          command: |
+            cd << parameters.service_path >>
+            sudo npm i -g serverless
+            npm install
+            serverless config credentials --provider aws --key ${AWS_ACCESS_KEY} --secret ${AWS_SECRET_KEY} --profile ty
+            serverless deploy
+workflows:
+  version: 2.1
+  shared-go-lambda:
+    jobs:
+      - checkout-code
+      - vendor:
+          docker_image: cimg/go:1.14
+          service_path: shared/go/lambda
+          dependency_file: go.sum
+          dependencies_location: /go/pkg/mod
+          requires:
+            - checkout-code
+      - unit:
+          docker_image: cimg/go:1.14
+          service_path: shared/go/lambda
+          requires:
+            - vendor
+      - integration:
+          docker_image: cimg/go:1.14
+          service_path: shared/go/lambda
+          requires:
+            - vendor
+  shared-go-log:
+    jobs:
+      - checkout-code
+      - vendor:
+          docker_image: cimg/go:1.14
+          service_path: shared/go/log
+          dependency_file: go.sum
+          dependencies_location: /go/pkg/mod
+          requires:
+            - checkout-code
+      - unit:
+          docker_image: cimg/go:1.14
+          service_path: shared/go/log
+          requires:
+            - vendor
+      - integration:
+          docker_image: cimg/go:1.14
+          service_path: shared/go/log
+          requires:
+            - vendor
+  shared-go-mongodb:
+    jobs:
+      - checkout-code
+      - vendor:
+          docker_image: cimg/go:1.14
+          service_path: shared/go/mongodb
+          dependency_file: go.sum
+          dependencies_location: /go/pkg/mod
+          requires:
+            - checkout-code
+      - unit:
+          docker_image: cimg/go:1.14
+          service_path: shared/go/mongodb
+          requires:
+            - vendor
+      - integration:
+          docker_image: cimg/go:1.14
+          service_path: shared/go/mongodb
+          requires:
+            - vendor
+  data-storer:
+    jobs:
+      - checkout-code
+      - vendor:
+          docker_image: cimg/go:1.14
+          service_path: services/data-storer
+          dependency_file: go.sum
+          dependencies_location: /go/pkg/mod
+          requires:
+            - checkout-code
+      - unit:
+          docker_image: cimg/go:1.14
+          service_path: services/data-storer
+          requires:
+            - vendor
+      - integration:
+          docker_image: cimg/go:1.14
+          service_path: services/data-storer
+          requires:
+            - vendor
+  deploy:
+    jobs:
+      - checkout-code
+          filters:
+            branches:
+              only:
+                - master
+      - build:
+          docker_image: cimg/go:1.14
+          service_path: services/data-storer
+          requires:
+            - checkout-code
+          filters:
+            branches:
+              only:
+                - master
+      - deploy
+          requires:
+            - build
+          filters:
+            branches:
+              only:
+                - master

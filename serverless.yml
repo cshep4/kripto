@@ -1,0 +1,44 @@
+service: kripto
+
+custom:
+  secrets: ${file(secrets.json)}
+
+provider:
+  name: aws
+  stage: prod
+  profile: kripto
+  region: eu-west-1
+  logRetentionInDays: 14
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - lambda:InvokeFunction
+      Resource: "*"
+  environment:
+    MONGO_URI: ${self:custom.secrets.mongoUri}
+
+package:
+  exclude:
+    - /**
+  include:
+    - /services/data-storer/bin/**
+
+functions:
+  read-data:
+    runtime: go1.x
+    handler: /services/data-storer/bin/read
+    events:
+      - http:
+          path: /data
+          resp: http
+          method: get
+          cors: true
+  write-data:
+    runtime: go1.x
+    handler: /services/data-storer/bin/write
+    events:
+      - http:
+          path: /data
+          resp: http
+          method: post
+          cors: true

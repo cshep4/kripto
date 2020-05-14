@@ -1,0 +1,16 @@
+# Secrets
+secrets.json
+
+### Serverless ###
+# Ignore build directory
+.serverless
+.idea
+.DS_Store
+
+node_modules
+
+vendor
+Gopkg.lock
+Gopkg.toml
+
+bin/
