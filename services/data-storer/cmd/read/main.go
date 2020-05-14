@@ -5,7 +5,7 @@ import (
 
 	"github.com/cshep4/kripto/services/data-storer/internal/handler/aws"
 	"github.com/cshep4/kripto/services/data-storer/internal/service"
-	"github.com/cshep4/kripto/services/data-storer/internal/store/mongo"
+	"github.com/cshep4/kripto/services/data-storer/internal/store/rate/mongo"
 	"github.com/cshep4/kripto/shared/go/lambda"
 	"github.com/cshep4/kripto/shared/go/mongodb"
 )

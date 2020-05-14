@@ -2,27 +2,38 @@ package mongo
 
 import (
 	"context"
-	"errors"
-	"github.com/cshep4/kripto/services/data-storer/internal/model"
+	"fmt"
 	"time"
 
+	"github.com/cshep4/kripto/services/data-storer/internal/model"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/x/bsonx"
 )
 
 const (
-	db         = "user"
-	collection = "user"
+	db         = "rate"
+	collection = "rate"
 )
 
-type store struct {
-	client *mongo.Client
+type (
+	store struct {
+		client *mongo.Client
+	}
+
+	// InvalidParameterError is returned when a required parameter passed to New is invalid.
+	InvalidParameterError struct {
+		Parameter string
+	}
+)
+
+func (i InvalidParameterError) Error() string {
+	return fmt.Sprintf("invalid parameter %s", i.Parameter)
 }
 
 func New(ctx context.Context, client *mongo.Client) (*store, error) {
 	if client == nil {
-		return nil, errors.New("mongo_client_is_nil")
+		return nil, InvalidParameterError{Parameter: "client"}
 	}
 
 	s := &store{
@@ -48,15 +59,14 @@ func (s *store) ensureIndexes(ctx context.Context) error {
 		ctx,
 		mongo.IndexModel{
 			Keys: bsonx.Doc{
-				{Key: "email", Value: bsonx.Int64(1)},
+				{Key: "dateTime", Value: bsonx.Int64(1)},
 			},
 			Options: options.Index().
-				SetName("email_idx").
+				SetName("dateTimeIdx").
 				SetUnique(true).
 				SetBackground(true),
 		},
 	)
-
 	if err != nil {
 		return err
 	}
@@ -64,11 +74,11 @@ func (s *store) ensureIndexes(ctx context.Context) error {
 	return nil
 }
 
-func (s *store) Store(ctx context.Context, user model.User) error {
+func (s *store) Store(ctx context.Context, rate float64, dateTime time.Time) error {
 	panic("implement me")
 }
 
-func (s *store) GetByEmail(ctx context.Context, email string) (*model.User, error) {
+func (s *store) GetPreviousWeeks(ctx context.Context) ([]model.Rate, error) {
 	panic("implement me")
 }
 

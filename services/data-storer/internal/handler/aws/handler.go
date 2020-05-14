@@ -2,25 +2,36 @@ package aws
 
 import (
 	"context"
-	"errors"
+	"fmt"
+	"net/http"
+
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/cshep4/kripto/services/data-storer/internal/model"
-	"net/http"
 )
 
 type (
 	Servicer interface {
-		Register(ctx context.Context, user model.User) error
+		Get(ctx context.Context) (*model.GetResponse, error)
+		Store(ctx context.Context, req model.StoreRequest) error
 	}
 
 	Handler struct {
 		service Servicer
 	}
+
+	// InvalidParameterError is returned when a required parameter passed to New is invalid.
+	InvalidParameterError struct {
+		Parameter string
+	}
 )
+
+func (i InvalidParameterError) Error() string {
+	return fmt.Sprintf("invalid parameter %s", i.Parameter)
+}
 
 func New(service Servicer) (*Handler, error) {
 	if service == nil {
-		return nil, errors.New("service_is_nil")
+		return nil, InvalidParameterError{Parameter: "service"}
 	}
 
 	return &Handler{

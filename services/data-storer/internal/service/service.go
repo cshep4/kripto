@@ -2,31 +2,56 @@ package service
 
 import (
 	"context"
-	"errors"
+	"fmt"
+	"time"
+
 	"github.com/cshep4/kripto/services/data-storer/internal/model"
 )
 
 type (
-	Storer interface {
-		Store(ctx context.Context, user model.User) error
-		GetByEmail(ctx context.Context, email string) (*model.User, error)
+	RateStore interface {
+		Store(ctx context.Context, rate float64, dateTime time.Time) error
+		GetPreviousWeeks(ctx context.Context) ([]model.Rate, error)
+	}
+
+	TradeStore interface {
+		Store(ctx context.Context, trade model.Trade) error
+		GetPreviousWeeks(ctx context.Context) ([]model.Trade, error)
 	}
 
 	service struct {
-		store Storer
+		rateStore  RateStore
+		tradeStore TradeStore
+	}
+
+	// InvalidParameterError is returned when a required parameter passed to New is invalid.
+	InvalidParameterError struct {
+		Parameter string
 	}
 )
 
-func New(store Storer) (*service, error) {
-	if store == nil {
-		return nil, errors.New("store_is_nil")
+func (i InvalidParameterError) Error() string {
+	return fmt.Sprintf("invalid parameter %s", i.Parameter)
+}
+
+func New(rateStore RateStore, tradeStore TradeStore) (*service, error) {
+	if rateStore == nil {
+		return nil, InvalidParameterError{Parameter: "rateStore"}
+	}
+	if tradeStore == nil {
+		return nil, InvalidParameterError{Parameter: "tradeStore"}
 	}
 
 	return &service{
-		store: store,
+		rateStore:  rateStore,
+		tradeStore: tradeStore,
 	}, nil
 }
 
-func (s *service) Register(ctx context.Context, user model.User) error {
+func (s *service) Get(ctx context.Context) (*model.GetResponse, error) {
+	panic("implement me")
+}
+
+func (s *service) Store(ctx context.Context, req model.StoreRequest) error {
 	panic("implement me")
 }

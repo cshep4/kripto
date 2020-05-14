@@ -3,10 +3,11 @@ package lambda_test
 import (
 	"context"
 	"errors"
+	"testing"
+
 	"github.com/cshep4/kripto/shared/go/log"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"testing"
 
 	aws "github.com/aws/aws-lambda-go/lambda"
 	"github.com/cshep4/kripto/shared/go/lambda"
