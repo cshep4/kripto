@@ -122,12 +122,6 @@ jobs:
           at: .
 
       - run:
-          name: Check files changed
-          command: |
-            chmod +x .circleci/check-changed.sh
-            if .circleci/check-changed.sh << parameters.service_path >> ${CIRCLE_BRANCH} | grep "NO" ; then circleci step halt; fi
-
-      - run:
           name: Build Functions
           command: |
             cd << parameters.service_path >>
@@ -140,23 +134,13 @@ jobs:
   deploy:
     docker:
       - image: circleci/node:8.10
-    parameters:
-      service_path:
-        type: string
     steps:
       - attach_workspace:
           at: .
 
       - run:
-          name: Check files changed
-          command: |
-            chmod +x .circleci/check-changed.sh
-            if .circleci/check-changed.sh << parameters.service_path >> ${CIRCLE_BRANCH} | grep "NO" ; then circleci step halt; fi
-
-      - run:
           name: Install Serverless CLI, Configure Profile, Deploy
           command: |
-            cd << parameters.service_path >>
             sudo npm i -g serverless
             npm install
             serverless config credentials --provider aws --key ${AWS_ACCESS_KEY} --secret ${AWS_SECRET_KEY} --profile ty
@@ -243,7 +227,7 @@ workflows:
           service_path: services/data-storer
           requires:
             - vendor
-  deploy:
+  deploy-functions:
     jobs:
       - checkout-code
       - build:
@@ -255,7 +239,7 @@ workflows:
             branches:
               only:
                 - master
-      - deploy
+      - deploy:
           requires:
             - build
           filters:
