@@ -40,7 +40,7 @@ package:
 functions:
   read-data:
     runtime: go1.x
-    memorySize: 64
+    memorySize: 128
     handler: services/data-storer/bin/read
     events:
       - http:
@@ -50,7 +50,7 @@ functions:
           cors: true
   write-data:
     runtime: go1.x
-    memorySize: 64
+    memorySize: 128
     handler: services/data-storer/bin/write
     events:
       - http:
@@ -60,7 +60,7 @@ functions:
           cors: true
   rate-writer:
     runtime: go1.x
-    memorySize: 64
+    memorySize: 128
     handler: services/data-storer/bin/rate-writer
     reservedConcurrency: 1
     events:
