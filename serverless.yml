@@ -17,11 +17,11 @@ provider:
       Action:
         - "sqs:SendMessage"
         - "sqs:GetQueueUrl"
-      Resource: "arn:aws:sqs:${self:provider.region}:${AWS::AccountId}:RateUpdate"
+      Resource: "arn:aws:sqs:${self:provider.region}:#{AWS::AccountId}:RateUpdate"
     - Effect: "Allow"
       Action:
         - "sqs:ListQueues"
-      Resource: "arn:aws:sqs:${self:provider.region}:${AWS::AccountId}:*"
+      Resource: "arn:aws:sqs:${self:provider.region}:#{AWS::AccountId}:*"
     - Effect: Allow
       Action:
         - lambda:InvokeFunction
@@ -30,7 +30,7 @@ provider:
     MONGO_URI: ${self:custom.secrets.mongoUri}
     TOKEN: ${self:custom.secrets.token}
     REGION: ${self:provider.region}
-    AWS_ACCOUNT_ID: ${AWS::AccountId}
+    AWS_ACCOUNT_ID: "#{AWS::AccountId}"
 
 package:
   exclude:
@@ -73,7 +73,7 @@ functions:
     runtime: nodejs8.10
     handler: services/rate-retriever.handler
     environment:
-      QUEUE_URL: "https://sqs.${self:provider.region}.amazonaws.com/${AWS::AccountId}/RateUpdate"
+      QUEUE_URL: "https://sqs.${self:provider.region}.amazonaws.com/#{AWS::AccountId}/RateUpdate"
       COINBASE_API_KEY: ${self:custom.secrets.coinbaseApiKey}
       COINBASE_SECRET_KEY: ${self:custom.secrets.coinbaseSecretKey}
     events:
