@@ -96,14 +96,6 @@ jobs:
             if .circleci/check-changed.sh << parameters.service_path >> ${CIRCLE_BRANCH} | grep "NO" ; then circleci step halt; fi
 
       - run:
-          name: Configure localstack aws credentials
-          command: |
-            cd << parameters.service_path >>
-            sudo npm i -g serverless
-            npm install
-            serverless config credentials --provider aws --key fake --secret fake --profile localstack
-
-      - run:
           name: Run tests
           command: |
             cd << parameters.service_path >>
@@ -149,7 +141,7 @@ jobs:
           command: |
             sudo npm i -g serverless
             npm install
-            serverless config credentials --provider aws --key ${AWS_ACCESS_KEY} --secret ${AWS_SECRET_KEY} --profile ty
+            serverless config credentials --provider aws --key ${AWS_ACCESS_KEY} --secret ${AWS_SECRET_KEY} --profile kripto
             serverless deploy
 workflows:
   version: 2.1
