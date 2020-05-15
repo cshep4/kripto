@@ -139,6 +139,12 @@ jobs:
           at: .
 
       - run:
+          name: Create secrets file
+          command: |
+            JSON='{"mongoUri":"%s","token":"%s","coinbaseApiKey":"%s","coinbaseSecretKey":"%s"}\n'
+            printf "$JSON" "${MONGO_URI}" "${TOKEN}" "${COINBASE_API_KEY}" "${COINBASE_SECRET_KEY}" > secrets.json
+
+      - run:
           name: Install Serverless CLI, Configure Profile, Deploy
           command: |
             sudo npm i -g serverless
@@ -227,10 +233,21 @@ workflows:
           service_path: services/data-storer
           requires:
             - vendor
+  #  rate-retriever:
+  #    jobs:
+  #      - checkout-code
+  #      - vendor:
+  #          docker_image: circleci/node:8.10
+  #          service_path: services/rate-retriever
+  #          dependency_file: package-lock.json
+  #          dependencies_location: services/rate-retriever/node_modules
+  #          requires:
+  #            - checkout-code
   deploy-functions:
     jobs:
       - checkout-code
       - build:
+          name: build-data-storer
           docker_image: cimg/go:1.14
           service_path: services/data-storer
           requires:
@@ -239,9 +256,20 @@ workflows:
             branches:
               only:
                 - master
+      - build:
+          name: build-rate-retriever
+          docker_image: circleci/node:8.10
+          service_path: services/rate-retriever
+          requires:
+            - checkout-code
+          filters:
+            branches:
+              only:
+                - master
       - deploy:
           requires:
-            - build
+            - build-data-storer
+            - build-rate-retriever
           filters:
             branches:
               only:

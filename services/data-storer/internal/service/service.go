@@ -55,3 +55,12 @@ func (s *service) Get(ctx context.Context) (*model.GetResponse, error) {
 func (s *service) Store(ctx context.Context, req model.StoreRequest) error {
 	panic("implement me")
 }
+
+func (s *service) StoreRate(ctx context.Context, rate float64, dateTime time.Time) error {
+	err := s.rateStore.Store(ctx, rate, dateTime)
+	if err != nil {
+		return fmt.Errorf("store_rate: %w", err)
+	}
+
+	return nil
+}

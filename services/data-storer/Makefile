@@ -4,6 +4,7 @@ default: build
 build:
 	GOOS=linux go build -o bin/read ./cmd/read
 	GOOS=linux go build -o bin/write ./cmd/write
+	GOOS=linux go build -o bin/rate-writer ./cmd/rate-writer
 
 vendor:
 	go install github.com/golang/mock/mockgen

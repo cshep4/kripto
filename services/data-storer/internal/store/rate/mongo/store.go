@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/cshep4/kripto/services/data-storer/internal/model"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/x/bsonx"
@@ -74,8 +75,20 @@ func (s *store) ensureIndexes(ctx context.Context) error {
 	return nil
 }
 
-func (s *store) Store(ctx context.Context, rate float64, dateTime time.Time) error {
-	panic("implement me")
+func (s *store) Store(ctx context.Context, r float64, dateTime time.Time) error {
+	_, err := s.client.
+		Database(db).
+		Collection(collection).
+		InsertOne(ctx, &rate{
+		Id:       primitive.NewObjectID(),
+		Rate:     r,
+		DateTime: dateTime,
+	})
+	if err != nil {
+		return fmt.Errorf("insert_one: %w", err)
+	}
+
+	return nil
 }
 
 func (s *store) GetPreviousWeeks(ctx context.Context) ([]model.Rate, error) {

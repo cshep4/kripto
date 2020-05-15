@@ -26,6 +26,12 @@ type (
 		Sell TradeRequest `json:"sell"`
 	}
 
+	StoreRateRequest struct {
+		IdempotencyKey string    `json:"idempotencyKey"`
+		Rate           float64   `json:"rate"`
+		DateTime       time.Time `json:"dateTime"`
+	}
+
 	TradeRequest struct {
 		Traded   bool      `json:"traded"`
 		GBP      float64   `json:"gbp"`

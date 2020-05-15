@@ -10,23 +10,36 @@ provider:
   region: eu-west-1
   logRetentionInDays: 14
   iamRoleStatements:
+    - Effect: "Allow"
+      Action:
+        - "sqs:SendMessage"
+        - "sqs:GetQueueUrl"
+      Resource: "arn:aws:sqs:${self:provider.region}:${AWS::AccountId}:RateUpdate"
+    - Effect: "Allow"
+      Action:
+        - "sqs:ListQueues"
+      Resource: "arn:aws:sqs:${self:provider.region}:${AWS::AccountId}:*"
     - Effect: Allow
       Action:
         - lambda:InvokeFunction
       Resource: "*"
   environment:
     MONGO_URI: ${self:custom.secrets.mongoUri}
+    TOKEN: ${self:custom.secrets.token}
+    REGION: ${self:provider.region}
+    AWS_ACCOUNT_ID: ${AWS::AccountId}
 
 package:
   exclude:
     - /**
   include:
-    - /services/data-storer/bin/**
+    - services/data-storer/bin/**
+    - services/rate-retriever/**
 
 functions:
   read-data:
     runtime: go1.x
-    handler: /services/data-storer/bin/read
+    handler: services/data-storer/bin/read
     events:
       - http:
           path: /data
@@ -35,10 +48,37 @@ functions:
           cors: true
   write-data:
     runtime: go1.x
-    handler: /services/data-storer/bin/write
+    handler: services/data-storer/bin/write
     events:
       - http:
           path: /data
           resp: http
           method: post
           cors: true
+  rate-writer:
+    runtime: go1.x
+    handler: services/data-storer/bin/rate-writer
+    reservedConcurrency: 1
+    events:
+      - sqs:
+          batchSize: 1
+          arn:
+            Fn::GetAtt:
+              - RateUpdate
+              - Arn
+  rate-retriever:
+    runtime: nodejs8.10
+    handler: services/rate-retriever.handler
+    environment:
+      QUEUE_URL: "https://sqs.${self:provider.region}.amazonaws.com/${AWS::AccountId}/RateUpdate"
+      COINBASE_API_KEY: ${self:custom.secrets.coinbaseApiKey}
+      COINBASE_SECRET_KEY: ${self:custom.secrets.coinbaseSecretKey}
+    events:
+      - schedule: rate(1 minute)
+
+resources:
+  Resources:
+    RateUpdate:
+      Type: "AWS::SQS::Queue"
+      Properties:
+        QueueName: "RateUpdate"

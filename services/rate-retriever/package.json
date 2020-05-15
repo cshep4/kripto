@@ -1,0 +1,30 @@
+{
+  "name": "kripto-rate-retriever",
+  "description": "BTC to GBP rate retriever",
+  "version": "1.0.0",
+  "main": "handler.js",
+  "scripts": {},
+  "author": "",
+  "license": "MIT",
+  "babel": {
+    "plugins": [
+      "source-map-support",
+      "transform-runtime"
+    ],
+    "presets": [
+      [
+        "env",
+        {
+          "node": "8.10"
+        }
+      ],
+      "stage-3"
+    ]
+  },
+  "devDependencies": {},
+  "dependencies": {
+    "aws-sdk": "^2.677.0",
+    "coinbase": "^2.0.8",
+    "uuid": "^8.0.0"
+  }
+}

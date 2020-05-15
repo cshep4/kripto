@@ -24,7 +24,7 @@ func fromTrade(t model.Trade) (*trade, error) {
 		var err error
 		id, err = primitive.ObjectIDFromHex(t.Id)
 		if err != nil {
-			return nil, fmt.Errorf("object_id_from_hex: %s", r.Id)
+			return nil, fmt.Errorf("object_id_from_hex: %s", t.Id)
 		}
 	}
 
