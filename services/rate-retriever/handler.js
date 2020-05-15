@@ -25,11 +25,11 @@ exports.handler = function (event, context, callback) {
         console.log(price);
 
         const params = {
-            MessageBody: {
+            MessageBody: JSON.stringify({
                 rate: price.data.amount,
                 dateTime: new Date(),
                 idempotencyKey: uuidv4(),
-            },
+            }),
             QueueUrl: queueUrl
         };
 
