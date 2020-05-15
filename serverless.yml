@@ -40,6 +40,7 @@ package:
 functions:
   read-data:
     runtime: go1.x
+    memorySize: 64
     handler: services/data-storer/bin/read
     events:
       - http:
@@ -49,6 +50,7 @@ functions:
           cors: true
   write-data:
     runtime: go1.x
+    memorySize: 64
     handler: services/data-storer/bin/write
     events:
       - http:
@@ -58,6 +60,7 @@ functions:
           cors: true
   rate-writer:
     runtime: go1.x
+    memorySize: 64
     handler: services/data-storer/bin/rate-writer
     reservedConcurrency: 1
     events:
@@ -69,6 +72,7 @@ functions:
               - Arn
   rate-retriever:
     runtime: nodejs12.x
+    memorySize: 128
     handler: services/rate-retriever.handler
     environment:
       QUEUE_URL: "https://sqs.${self:provider.region}.amazonaws.com/${self:custom.secrets.awsAccountId}/RateUpdate"
