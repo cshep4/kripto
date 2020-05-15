@@ -96,7 +96,3 @@ func (h *Handler) StoreRate(ctx context.Context, sqsEvent events.SQSEvent) error
 
 	return nil
 }
-
-func (h *Handler) ServiceName() string {
-	return "data-storer"
-}

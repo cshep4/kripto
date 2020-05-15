@@ -60,6 +60,5 @@ func setup(ctx context.Context) error {
 
 func main() {
 	lambda.Init(cfg)
-	lambda.Init(cfg)
 	runner.Start()
 }
