@@ -12,7 +12,9 @@ const coinbaseClient = new Client({
 
 const {v4: uuidv4} = require('uuid');
 
-exports.handler = function (event, context, callback) {
+const lumigo = require('@lumigo/tracer')({token: process.env.LUMIGO_TOKEN})
+
+exports.handler = lumigo.trace((event, context, callback) => {
     const queueUrl = process.env.QUEUE_URL;
 
     coinbaseClient.getBuyPrice({'currencyPair': 'BTC-GBP'}, function (err, price) {
@@ -43,4 +45,4 @@ exports.handler = function (event, context, callback) {
             console.log('data:', data.MessageId);
         });
     });
-}
+});

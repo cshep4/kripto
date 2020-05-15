@@ -133,8 +133,8 @@ jobs:
       - run:
           name: Create secrets file
           command: |
-            JSON='{"mongoUri":"%s","token":"%s","coinbaseApiKey":"%s","coinbaseSecretKey":"%s", "awsAccountId": "%s"}\n'
-            printf "$JSON" "${MONGO_URI}" "${TOKEN}" "${COINBASE_API_KEY}" "${COINBASE_SECRET_KEY}" "${AWS_ACCOUNT_ID}" > secrets.json
+            JSON='{"mongoUri":"%s","token":"%s","coinbaseApiKey":"%s","coinbaseSecretKey":"%s", "awsAccountId": "%s", "lumigoToken": "%s"}\n'
+            printf "$JSON" "${MONGO_URI}" "${TOKEN}" "${COINBASE_API_KEY}" "${COINBASE_SECRET_KEY}" "${AWS_ACCOUNT_ID}" "${LUMIGO_TOKEN}" > secrets.json
 
       - run:
           name: Install Serverless CLI, Configure Profile, Deploy
