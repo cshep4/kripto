@@ -13,6 +13,7 @@ var (
 		ServiceName:  "data-storer",
 		FunctionName: "write",
 		Setup:        setup,
+		Initialised:  func() bool { return handler != nil },
 	}
 
 	handler *aws.Handler
@@ -45,6 +46,6 @@ func setup(ctx context.Context) error {
 }
 
 func main() {
-	lambda.Init(handler, cfg)
+	lambda.Init(cfg)
 	runner.Start()
 }
