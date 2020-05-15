@@ -22,7 +22,5 @@
     ]
   },
   "devDependencies": {},
-  "dependencies": {
-    "serverless-pseudo-parameters": "^2.5.0"
-  }
+  "dependencies": {}
 }
