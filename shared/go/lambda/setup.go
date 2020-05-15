@@ -2,27 +2,24 @@ package lambda
 
 import (
 	"context"
-	"reflect"
-
 	"github.com/cshep4/kripto/shared/go/log"
 )
 
 type (
-	Handler interface {
-		ServiceName() string
-	}
-	SetupFunc func(context.Context) error
+	SetupFunc       func(context.Context) error
+	InitialisedFunc func() bool
 
 	FunctionConfig struct {
 		Setup        SetupFunc
+		Initialised  InitialisedFunc
 		LogLevel     string
 		ServiceName  string
 		FunctionName string
 	}
 )
 
-func Init(handler Handler, cfg FunctionConfig) {
-	if !reflect.ValueOf(handler).IsNil() {
+func Init(cfg FunctionConfig) {
+	if cfg.Initialised() {
 		return
 	}
 

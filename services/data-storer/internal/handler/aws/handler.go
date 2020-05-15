@@ -21,8 +21,8 @@ type (
 	}
 
 	Handler struct {
-		service      Servicer
-		idempotencer idempotency.Idempotencer
+		Service      Servicer
+		Idempotencer idempotency.Idempotencer
 	}
 
 	// InvalidParameterError is returned when a required parameter passed to New is invalid.
@@ -33,20 +33,6 @@ type (
 
 func (i InvalidParameterError) Error() string {
 	return fmt.Sprintf("invalid parameter %s", i.Parameter)
-}
-
-func New(service Servicer, idempotencer idempotency.Idempotencer) (*Handler, error) {
-	switch {
-	case service == nil:
-		return nil, InvalidParameterError{Parameter: "service"}
-	case idempotencer == nil:
-		return nil, InvalidParameterError{Parameter: "idempotencer"}
-	}
-
-	return &Handler{
-		service:      service,
-		idempotencer: idempotencer,
-	}, nil
 }
 
 func (h *Handler) Get(ctx context.Context, req events.APIGatewayProxyRequest) (*events.APIGatewayProxyResponse, error) {
@@ -82,7 +68,7 @@ func (h *Handler) StoreRate(ctx context.Context, sqsEvent events.SQSEvent) error
 			continue
 		}
 
-		ok, err := h.idempotencer.Check(ctx, req.IdempotencyKey)
+		ok, err := h.Idempotencer.Check(ctx, req.IdempotencyKey)
 		if err != nil {
 			log.Error(ctx, "error_checking_idempotency", log.ErrorParam(err))
 			continue
@@ -96,7 +82,7 @@ func (h *Handler) StoreRate(ctx context.Context, sqsEvent events.SQSEvent) error
 			continue
 		}
 
-		err = h.service.StoreRate(ctx, req.Rate, req.DateTime)
+		err = h.Service.StoreRate(ctx, req.Rate, req.DateTime)
 		if err != nil {
 			log.Error(ctx, "error_storing_rate",
 				log.SafeParam("rate", req.Rate),

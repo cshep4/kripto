@@ -18,9 +18,10 @@ var (
 		ServiceName:  "data-storer",
 		FunctionName: "read",
 		Setup:        setup,
+		Initialised:  func() bool { return handler.Service != nil && handler.Idempotencer != nil },
 	}
 
-	handler *aws.Handler
+	handler = &aws.Handler{}
 
 	runner = lambda.New(
 		handler.StoreRate,
@@ -44,21 +45,21 @@ func setup(ctx context.Context) error {
 		return err
 	}
 
-	svc, err := service.New(rateStore, tradeStore)
+	handler.Service, err = service.New(rateStore, tradeStore)
 	if err != nil {
 		return err
 	}
 
-	idempotencer, err := idempotency.New(ctx, "rate", mongoClient)
+	handler.Idempotencer, err = idempotency.New(ctx, "rate", mongoClient)
 	if err != nil {
 		return err
 	}
 
-	handler, err = aws.New(svc, idempotencer)
-	return err
+	return nil
 }
 
 func main() {
-	lambda.Init(handler, cfg)
+	lambda.Init(cfg)
+	lambda.Init(cfg)
 	runner.Start()
 }
