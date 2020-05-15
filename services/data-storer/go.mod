@@ -9,6 +9,7 @@ require (
 	github.com/cshep4/kripto/shared/go/log v0.0.0-20200227002205-4db5d3107521
 	github.com/cshep4/kripto/shared/go/mongodb v0.0.0-20200227002205-4db5d3107521
 	github.com/golang/mock v1.4.0
+	github.com/stretchr/testify v1.4.0
 	go.mongodb.org/mongo-driver v1.3.3
 )
 

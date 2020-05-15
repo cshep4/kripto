@@ -3,6 +3,7 @@ package mongo
 import (
 	"context"
 	"fmt"
+	"go.mongodb.org/mongo-driver/bson"
 	"time"
 
 	"github.com/cshep4/kripto/services/data-storer/internal/model"
@@ -80,10 +81,10 @@ func (s *store) Store(ctx context.Context, r float64, dateTime time.Time) error 
 		Database(db).
 		Collection(collection).
 		InsertOne(ctx, &rate{
-		Id:       primitive.NewObjectID(),
-		Rate:     r,
-		DateTime: dateTime,
-	})
+			Id:       primitive.NewObjectID(),
+			Rate:     r,
+			DateTime: dateTime,
+		})
 	if err != nil {
 		return fmt.Errorf("insert_one: %w", err)
 	}
@@ -92,7 +93,50 @@ func (s *store) Store(ctx context.Context, r float64, dateTime time.Time) error 
 }
 
 func (s *store) GetPreviousWeeks(ctx context.Context) ([]model.Rate, error) {
-	panic("implement me")
+	cur, err := s.client.
+		Database(db).
+		Collection(collection).
+		Find(
+			ctx,
+			bson.D{
+				{
+					Key: "dateTime",
+					Value: bson.D{
+						{
+							Key:   "$gte",
+							Value: time.Now().AddDate(0, 0, -7),
+						},
+					},
+				},
+			},
+			&options.FindOptions{
+				Sort: bson.D{
+					bson.E{Key: "dateTime", Value: -1},
+				},
+			},
+		)
+	if err != nil {
+		return nil, fmt.Errorf("find: %w", err)
+	}
+
+	var rates []model.Rate
+	defer cur.Close(ctx)
+
+	for cur.Next(ctx) {
+		var r rate
+		err := cur.Decode(&r)
+		if err != nil {
+			return nil, fmt.Errorf("decode: %w", err)
+		}
+
+		rates = append(rates, toRate(r))
+	}
+
+	if err := cur.Err(); err != nil {
+		return nil, fmt.Errorf("cursor_err: %w", err)
+	}
+
+	return rates, nil
 }
 
 func (s *store) ping(ctx context.Context) error {
