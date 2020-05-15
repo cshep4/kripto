@@ -83,7 +83,10 @@ func (h *Handler) StoreRate(ctx context.Context, sqsEvent events.SQSEvent) error
 		}
 
 		ok, err := h.idempotencer.Check(ctx, req.IdempotencyKey)
-		if ok && err == nil {
+		if err != nil {
+			log.Error(ctx, "error_checking_idempotency", log.ErrorParam(err))
+		}
+		if ok {
 			log.Info(ctx, "msg_already_processed",
 				log.SafeParam("rate", req.Rate),
 				log.SafeParam("dateTime", req.DateTime),
