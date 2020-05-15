@@ -26,7 +26,7 @@ exports.handler = function (event, context, callback) {
 
         const params = {
             MessageBody: JSON.stringify({
-                rate: price.data.amount,
+                rate: parseFloat(price.data.amount),
                 dateTime: new Date(),
                 idempotencyKey: uuidv4(),
             }),
