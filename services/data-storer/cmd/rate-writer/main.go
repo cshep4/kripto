@@ -2,10 +2,12 @@ package main
 
 import (
 	"context"
+	"github.com/cshep4/kripto/shared/go/idempotency"
 
 	"github.com/cshep4/kripto/services/data-storer/internal/handler/aws"
 	"github.com/cshep4/kripto/services/data-storer/internal/service"
-	"github.com/cshep4/kripto/services/data-storer/internal/store/rate/mongo"
+	rate "github.com/cshep4/kripto/services/data-storer/internal/store/rate/mongo"
+	trade "github.com/cshep4/kripto/services/data-storer/internal/store/trade/mongo"
 	"github.com/cshep4/kripto/shared/go/lambda"
 	"github.com/cshep4/kripto/shared/go/mongodb"
 )
@@ -32,17 +34,27 @@ func setup(ctx context.Context) error {
 		return err
 	}
 
-	store, err := mongo.New(ctx, mongoClient)
+	rateStore, err := rate.New(ctx, mongoClient)
 	if err != nil {
 		return err
 	}
 
-	svc, err := service.New(store)
+	tradeStore, err := trade.New(ctx, mongoClient)
 	if err != nil {
 		return err
 	}
 
-	handler, err = aws.New(svc)
+	svc, err := service.New(rateStore, tradeStore)
+	if err != nil {
+		return err
+	}
+
+	idempotencer, err := idempotency.New(ctx, "rate", mongoClient)
+	if err != nil {
+		return err
+	}
+
+	handler, err = aws.New(svc, idempotencer)
 	return err
 }
 

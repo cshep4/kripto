@@ -4,10 +4,7 @@ import (
 	"context"
 
 	"github.com/cshep4/kripto/services/data-storer/internal/handler/aws"
-	"github.com/cshep4/kripto/services/data-storer/internal/service"
-	"github.com/cshep4/kripto/services/data-storer/internal/store/rate/mongo"
 	"github.com/cshep4/kripto/shared/go/lambda"
-	"github.com/cshep4/kripto/shared/go/mongodb"
 )
 
 var (
@@ -27,23 +24,23 @@ var (
 )
 
 func setup(ctx context.Context) error {
-	mongoClient, err := mongodb.New(ctx)
-	if err != nil {
-		return err
-	}
-
-	store, err := mongo.New(ctx, mongoClient)
-	if err != nil {
-		return err
-	}
-
-	svc, err := service.New(store)
-	if err != nil {
-		return err
-	}
-
-	handler, err = aws.New(svc)
-	return err
+	//mongoClient, err := mongodb.New(ctx)
+	//if err != nil {
+	//	return err
+	//}
+	//
+	//store, err := mongo.New(ctx, mongoClient)
+	//if err != nil {
+	//	return err
+	//}
+	//
+	//svc, err := service.New(store)
+	//if err != nil {
+	//	return err
+	//}
+	//
+	//handler, err = aws.New(svc)
+	return nil
 }
 
 func main() {

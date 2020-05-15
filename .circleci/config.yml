@@ -213,6 +213,26 @@ workflows:
           service_path: shared/go/mongodb
           requires:
             - vendor
+  shared-go-idempotency:
+    jobs:
+      - checkout-code
+      - vendor:
+          docker_image: cimg/go:1.14
+          service_path: shared/go/idempotency
+          dependency_file: go.sum
+          dependencies_location: /go/pkg/mod
+          requires:
+            - checkout-code
+      - unit:
+          docker_image: cimg/go:1.14
+          service_path: shared/go/idempotency
+          requires:
+            - vendor
+      - integration:
+          docker_image: cimg/go:1.14
+          service_path: shared/go/idempotency
+          requires:
+            - vendor
   data-storer:
     jobs:
       - checkout-code
