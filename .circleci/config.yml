@@ -153,106 +153,106 @@ jobs:
             serverless deploy
 workflows:
   version: 2.1
-  shared-go-lambda:
-    jobs:
-      - checkout-code
-      - vendor:
-          docker_image: cimg/go:1.14
-          service_path: shared/go/lambda
-          dependency_file: go.sum
-          dependencies_location: /go/pkg/mod
-          requires:
-            - checkout-code
-      - unit:
-          docker_image: cimg/go:1.14
-          service_path: shared/go/lambda
-          requires:
-            - vendor
-      - integration:
-          docker_image: cimg/go:1.14
-          service_path: shared/go/lambda
-          requires:
-            - vendor
-  shared-go-log:
-    jobs:
-      - checkout-code
-      - vendor:
-          docker_image: cimg/go:1.14
-          service_path: shared/go/log
-          dependency_file: go.sum
-          dependencies_location: /go/pkg/mod
-          requires:
-            - checkout-code
-      - unit:
-          docker_image: cimg/go:1.14
-          service_path: shared/go/log
-          requires:
-            - vendor
-      - integration:
-          docker_image: cimg/go:1.14
-          service_path: shared/go/log
-          requires:
-            - vendor
-  shared-go-mongodb:
-    jobs:
-      - checkout-code
-      - vendor:
-          docker_image: cimg/go:1.14
-          service_path: shared/go/mongodb
-          dependency_file: go.sum
-          dependencies_location: /go/pkg/mod
-          requires:
-            - checkout-code
-      - unit:
-          docker_image: cimg/go:1.14
-          service_path: shared/go/mongodb
-          requires:
-            - vendor
-      - integration:
-          docker_image: cimg/go:1.14
-          service_path: shared/go/mongodb
-          requires:
-            - vendor
-  shared-go-idempotency:
-    jobs:
-      - checkout-code
-      - vendor:
-          docker_image: cimg/go:1.14
-          service_path: shared/go/idempotency
-          dependency_file: go.sum
-          dependencies_location: /go/pkg/mod
-          requires:
-            - checkout-code
-      - unit:
-          docker_image: cimg/go:1.14
-          service_path: shared/go/idempotency
-          requires:
-            - vendor
-      - integration:
-          docker_image: cimg/go:1.14
-          service_path: shared/go/idempotency
-          requires:
-            - vendor
-  data-storer:
-    jobs:
-      - checkout-code
-      - vendor:
-          docker_image: cimg/go:1.14
-          service_path: services/data-storer
-          dependency_file: go.sum
-          dependencies_location: /go/pkg/mod
-          requires:
-            - checkout-code
-      - unit:
-          docker_image: cimg/go:1.14
-          service_path: services/data-storer
-          requires:
-            - vendor
-      - integration:
-          docker_image: cimg/go:1.14
-          service_path: services/data-storer
-          requires:
-            - vendor
+#  shared-go-lambda:
+#    jobs:
+#      - checkout-code
+#      - vendor:
+#          docker_image: cimg/go:1.14
+#          service_path: shared/go/lambda
+#          dependency_file: go.sum
+#          dependencies_location: /go/pkg/mod
+#          requires:
+#            - checkout-code
+#      - unit:
+#          docker_image: cimg/go:1.14
+#          service_path: shared/go/lambda
+#          requires:
+#            - vendor
+#      - integration:
+#          docker_image: cimg/go:1.14
+#          service_path: shared/go/lambda
+#          requires:
+#            - vendor
+#  shared-go-log:
+#    jobs:
+#      - checkout-code
+#      - vendor:
+#          docker_image: cimg/go:1.14
+#          service_path: shared/go/log
+#          dependency_file: go.sum
+#          dependencies_location: /go/pkg/mod
+#          requires:
+#            - checkout-code
+#      - unit:
+#          docker_image: cimg/go:1.14
+#          service_path: shared/go/log
+#          requires:
+#            - vendor
+#      - integration:
+#          docker_image: cimg/go:1.14
+#          service_path: shared/go/log
+#          requires:
+#            - vendor
+#  shared-go-mongodb:
+#    jobs:
+#      - checkout-code
+#      - vendor:
+#          docker_image: cimg/go:1.14
+#          service_path: shared/go/mongodb
+#          dependency_file: go.sum
+#          dependencies_location: /go/pkg/mod
+#          requires:
+#            - checkout-code
+#      - unit:
+#          docker_image: cimg/go:1.14
+#          service_path: shared/go/mongodb
+#          requires:
+#            - vendor
+#      - integration:
+#          docker_image: cimg/go:1.14
+#          service_path: shared/go/mongodb
+#          requires:
+#            - vendor
+#  shared-go-idempotency:
+#    jobs:
+#      - checkout-code
+#      - vendor:
+#          docker_image: cimg/go:1.14
+#          service_path: shared/go/idempotency
+#          dependency_file: go.sum
+#          dependencies_location: /go/pkg/mod
+#          requires:
+#            - checkout-code
+#      - unit:
+#          docker_image: cimg/go:1.14
+#          service_path: shared/go/idempotency
+#          requires:
+#            - vendor
+#      - integration:
+#          docker_image: cimg/go:1.14
+#          service_path: shared/go/idempotency
+#          requires:
+#            - vendor
+#  data-storer:
+#    jobs:
+#      - checkout-code
+#      - vendor:
+#          docker_image: cimg/go:1.14
+#          service_path: services/data-storer
+#          dependency_file: go.sum
+#          dependencies_location: /go/pkg/mod
+#          requires:
+#            - checkout-code
+#      - unit:
+#          docker_image: cimg/go:1.14
+#          service_path: services/data-storer
+#          requires:
+#            - vendor
+#      - integration:
+#          docker_image: cimg/go:1.14
+#          service_path: services/data-storer
+#          requires:
+#            - vendor
   #  rate-retriever:
   #    jobs:
   #      - checkout-code
@@ -281,14 +281,13 @@ workflows:
           docker_image: circleci/node:8.10
           service_path: services/rate-retriever
           requires:
-            - checkout-code
+            - build-data-storer
           filters:
             branches:
               only:
                 - master
       - deploy:
           requires:
-            - build-data-storer
             - build-rate-retriever
           filters:
             branches:
