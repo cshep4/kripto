@@ -3,11 +3,12 @@ package idempotency
 import (
 	"context"
 	"fmt"
+	"time"
+
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/x/bsonx"
-	"time"
 )
 
 const (
@@ -116,13 +117,13 @@ func (m *mongoIdempotencer) getKey(ctx context.Context, key string) (bool, error
 	if err != nil {
 		switch err {
 		case mongo.ErrNoDocuments:
-			return true, nil
+			return false, nil
 		default:
-			return false, fmt.Errorf("find_one: %w", err)
+			return true, fmt.Errorf("find_one: %w", err)
 		}
 	}
 
-	return false, nil
+	return true, nil
 }
 
 func (m *mongoIdempotencer) storeKey(ctx context.Context, key string) error {
