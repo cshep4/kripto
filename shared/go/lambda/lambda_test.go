@@ -186,8 +186,9 @@ func TestRunner_Invoke(t *testing.T) {
 
 			payload = []byte{1}
 
-			logLevel    = "debug"
-			serviceName = "test"
+			logLevel     = "debug"
+			serviceName  = "test-service"
+			functionName = "test-function"
 		)
 
 		function := func(ctx context.Context) ([]byte, error) {
@@ -197,7 +198,7 @@ func TestRunner_Invoke(t *testing.T) {
 
 		runner := lambda.New(
 			function,
-			lambda.WithPreExecute(lambda.LogMiddleware(logLevel, serviceName)),
+			lambda.WithPreExecute(lambda.LogMiddleware(logLevel, serviceName, functionName)),
 		)
 
 		_, err := runner.Invoke(ctx, payload)
