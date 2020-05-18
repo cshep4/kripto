@@ -17,6 +17,11 @@ provider:
       Resource: "arn:aws:sqs:${self:provider.region}:${self:custom.secrets.awsAccountId}:RateUpdate"
     - Effect: "Allow"
       Action:
+        - "sqs:SendMessage"
+        - "sqs:GetQueueUrl"
+      Resource: "arn:aws:sqs:${self:provider.region}:${self:custom.secrets.awsAccountId}:Trade"
+    - Effect: "Allow"
+      Action:
         - "sqs:ListQueues"
       Resource: "arn:aws:sqs:${self:provider.region}:${self:custom.secrets.awsAccountId}:*"
     - Effect: Allow
@@ -35,6 +40,7 @@ package:
     - /**
   include:
     - services/data-storer/bin/**
+    - services/trader/bin/**
     - services/rate-retriever/**
 
 functions:
@@ -85,6 +91,7 @@ functions:
     memorySize: 128
     handler: services/trader/bin/trader
     environment:
+      QUEUE_URL: "https://sqs.${self:provider.region}.amazonaws.com/${self:custom.secrets.awsAccountId}/Trade"
       COINBASE_PRO_KEY: ${self:custom.secrets.coinbaseProApiKey}
       COINBASE_PRO_PASSPHRASE: ${self:custom.secrets.coinbaseProPassphrase}
       COINBASE_PRO_SECRET: ${self:custom.secrets.coinbaseProSecretKey}
@@ -100,3 +107,7 @@ resources:
       Type: "AWS::SQS::Queue"
       Properties:
         QueueName: "RateUpdate"
+    Trade:
+      Type: "AWS::SQS::Queue"
+      Properties:
+        QueueName: "Trade"
