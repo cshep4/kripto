@@ -3,7 +3,9 @@
   "description": "BTC to GBP rate retriever",
   "version": "1.0.0",
   "main": "handler.js",
-  "scripts": {},
+  "scripts": {
+    "locally": "node -e \"console.log(require('./handler').handler({}));\""
+  },
   "author": "",
   "license": "MIT",
   "babel": {

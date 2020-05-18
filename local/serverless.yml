@@ -1,13 +1,39 @@
 service: kripto
 
+plugins:
+  - serverless-localstack
+
 custom:
+  localstack:
+    debug: true
+    stages:
+      # list of stages for which the plugin should be enabled
+      - local
+    host: http://localhost  # optional - LocalStack host to connect to
+    autostart: true  # optional - start LocalStack in Docker on Serverless deploy
+    endpoints:
+      # This section is optional - can be used for customizing the target endpoints
+      S3: http://localhost:4572
+      DynamoDB: http://localhost:4569
+      CloudFormation: http://localhost:4581
+      Elasticsearch: http://localhost:4571
+      ES: http://localhost:4578
+      SNS: http://localhost:4575
+      SQS: http://localhost:4576
+      Lambda: http://localhost:4574
+      Kinesis: http://localhost:4568
+    lambda:
+      # Enable this flag to improve performance
+      mountCode: True
+    docker:
+      # Enable this flag to run "docker ..." commands as sudo
+      sudo: False
   secrets: ${file(secrets.json)}
 
 provider:
   name: aws
-  stage: prod
-  profile: kripto
-  region: eu-west-1
+  stage: local
+  region: us-east-1
   logRetentionInDays: 14
   iamRoleStatements:
     - Effect: "Allow"
@@ -32,16 +58,16 @@ provider:
 
 package:
   exclude:
-    - /**
+    - ../**
   include:
-    - services/data-storer/bin/**
-    - services/rate-retriever/**
+    - ../services/data-storer/bin/**
+    - ../services/rate-retriever/**
 
 functions:
   read-data:
     runtime: go1.x
     memorySize: 128
-    handler: services/data-storer/bin/read
+    handler: ../services/data-storer/bin/read
     events:
       - http:
           path: /data
@@ -51,7 +77,7 @@ functions:
   write-data:
     runtime: go1.x
     memorySize: 128
-    handler: services/data-storer/bin/write
+    handler: ../services/data-storer/bin/write
     events:
       - http:
           path: /data
@@ -61,7 +87,7 @@ functions:
   rate-writer:
     runtime: go1.x
     memorySize: 128
-    handler: services/data-storer/bin/rate-writer
+    handler: ../services/data-storer/bin/rate-writer
     reservedConcurrency: 1
     events:
       - sqs:
@@ -73,26 +99,13 @@ functions:
   rate-retriever:
     runtime: nodejs12.x
     memorySize: 128
-    handler: services/rate-retriever.handler
+    handler: ../services/rate-retriever.handler
     environment:
-      QUEUE_URL: "https://sqs.${self:provider.region}.amazonaws.com/${self:custom.secrets.awsAccountId}/RateUpdate"
+      QUEUE_URL: "http://localhost:4576/${self:custom.secrets.awsAccountId}/RateUpdate"
       COINBASE_API_KEY: ${self:custom.secrets.coinbaseApiKey}
       COINBASE_SECRET_KEY: ${self:custom.secrets.coinbaseSecretKey}
     events:
       - schedule: rate(1 minute)
-  trader:
-    runtime: go1.x
-    memorySize: 128
-    handler: services/trader/bin/trader
-    environment:
-      COINBASE_PRO_KEY: ${self:custom.secrets.coinbaseProApiKey}
-      COINBASE_PRO_PASSPHRASE: ${self:custom.secrets.coinbaseProPassphrase}
-      COINBASE_PRO_SECRET: ${self:custom.secrets.coinbaseProSecretKey}
-      COINBASE_PRO_SANDBOX_KEY: ${self:custom.secrets.coinbaseProSandboxApiKey}
-      COINBASE_PRO_SANDBOX_PASSPHRASE: ${self:custom.secrets.coinbaseProSandboxPassphrase}
-      COINBASE_PRO_SANDBOX_SECRET: ${self:custom.secrets.coinbaseProSandboxSecretKey}
-      MOCK_TRADE: true
-      TRADE_AMOUNT: 10.00
 
 resources:
   Resources:

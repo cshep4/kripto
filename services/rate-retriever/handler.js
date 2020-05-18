@@ -12,7 +12,7 @@ const coinbaseClient = new Client({
 
 const {v4: uuidv4} = require('uuid');
 
-const lumigo = require('@lumigo/tracer')({token: process.env.LUMIGO_TOKEN})
+const lumigo = require('@lumigo/tracer')({token: process.env.LUMIGO_TOKEN});
 
 exports.handler = lumigo.trace((event, context, callback) => {
     const queueUrl = process.env.QUEUE_URL;
@@ -23,8 +23,6 @@ exports.handler = lumigo.trace((event, context, callback) => {
             callback(err);
             return;
         }
-
-        console.log(price);
 
         const params = {
             MessageBody: JSON.stringify({
