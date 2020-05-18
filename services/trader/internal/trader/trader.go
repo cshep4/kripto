@@ -2,8 +2,9 @@ package trader
 
 import (
 	"fmt"
-	"github.com/preichenberger/go-coinbasepro/v2"
 	"time"
+
+	"github.com/preichenberger/go-coinbasepro/v2"
 )
 
 const (

@@ -2,9 +2,9 @@ package lambda
 
 import (
 	"context"
-	"github.com/cshep4/kripto/shared/go/log"
 
 	"github.com/aws/aws-lambda-go/lambda"
+	"github.com/cshep4/kripto/shared/go/log"
 )
 
 type (

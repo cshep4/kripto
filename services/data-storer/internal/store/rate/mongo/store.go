@@ -3,8 +3,9 @@ package mongo
 import (
 	"context"
 	"fmt"
-	"go.mongodb.org/mongo-driver/bson"
 	"time"
+
+	"go.mongodb.org/mongo-driver/bson"
 
 	"github.com/cshep4/kripto/services/data-storer/internal/model"
 	"go.mongodb.org/mongo-driver/bson/primitive"

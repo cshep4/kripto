@@ -3,7 +3,11 @@ package main
 import (
 	"context"
 	"fmt"
+
 	"github.com/Netflix/go-env"
+	awsconfig "github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/sqs"
 	"github.com/cshep4/kripto/services/trader/internal/handler/aws"
 	"github.com/cshep4/kripto/services/trader/internal/service"
 	"github.com/cshep4/kripto/services/trader/internal/trader"
@@ -22,6 +26,10 @@ type environment struct {
 		Passphrase string `env:"COINBASE_PRO_SANDBOX_PASSPHRASE"`
 		Secret     string `env:"COINBASE_PRO_SANDBOX_SECRET"`
 	}
+	SQS struct {
+		QueueURL string `env:"QUEUE_URL"`
+		Region   string `env:"REGION"`
+	}
 	MockTrade   bool   `env:"MOCK_TRADE"`
 	TradeAmount string `env:"TRADE_AMOUNT"`
 }
@@ -30,7 +38,7 @@ var (
 	cfg = lambda.FunctionConfig{
 		LogLevel:     "info",
 		ServiceName:  "trader",
-		FunctionName: "read",
+		FunctionName: "trade",
 		Setup:        setup,
 		Initialised:  func() bool { return handler.Service != nil },
 	}
@@ -56,12 +64,18 @@ func setup(ctx context.Context) error {
 
 	coinbaseClient := initCoinbaseProClient(env)
 
+	sess, err := session.NewSession(&awsconfig.Config{
+		Region: &env.SQS.Region,
+	})
+
+	sqsClient := sqs.New(sess)
+
 	trader, err := trader.New(coinbaseClient)
 	if err != nil {
 		return fmt.Errorf("initialise_trader: %w", err)
 	}
 
-	handler.Service, err = service.New(env.TradeAmount, trader)
+	handler.Service, err = service.New(env.TradeAmount, env.SQS.QueueURL, sqsClient, trader)
 	if err != nil {
 		return fmt.Errorf("initialise_service: %w", err)
 	}
