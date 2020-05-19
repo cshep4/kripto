@@ -2,7 +2,7 @@
 default: build
 
 build:
-	GOOS=linux go build -o bin/trader ./cmd/trader
+	GOOS=linux go build -o bin/trade ./cmd/trade
 
 vendor:
 	go install github.com/golang/mock/mockgen

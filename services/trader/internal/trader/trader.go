@@ -16,18 +16,15 @@ type (
 	TradeType string
 
 	TradeResponse struct {
-		ID        string    `json:"id"`
-		Side      string    `json:"side"`
-		ProductID string    `json:"product_id"`
-		Funds     string    `json:"funds,omitempty"`
-		Settled   bool      `json:"settled,omitempty"`
-		CreatedAt time.Time `json:"created_at,string,omitempty"`
-		// Fees in GBP.
-		FillFees string `json:"fill_fees,omitempty"`
-		// Value in BTC.
-		FilledSize string `json:"filled_size,omitempty"`
-		// Value in GBP.
-		ExecutedValue string `json:"executed_value,omitempty"`
+		Id            string    `json:"id"`
+		Side          string    `json:"side"`
+		ProductId     string    `json:"productId"`
+		Funds         string    `json:"funds,omitempty"` // Spent Funds in GBP.
+		Settled       bool      `json:"settled"`
+		CreatedAt     time.Time `json:"createdAt,string,omitempty"`
+		FillFees      string    `json:"fillFees,omitempty"`      // Fees in GBP.
+		FilledSize    string    `json:"filledSize,omitempty"`    // Value in BTC.
+		ExecutedValue string    `json:"executedValue,omitempty"` // Value in GBP.
 	}
 
 	Coinbase interface {
@@ -79,9 +76,9 @@ func (t *trader) Trade(tradeType TradeType, amount string) (*TradeResponse, erro
 
 	return &TradeResponse{
 		Side:          order.Side,
-		ProductID:     order.ProductID,
+		ProductId:     order.ProductID,
 		Funds:         order.Funds,
-		ID:            order.ID,
+		Id:            order.ID,
 		Settled:       order.Settled,
 		CreatedAt:     time.Time(order.CreatedAt),
 		FillFees:      order.FillFees,

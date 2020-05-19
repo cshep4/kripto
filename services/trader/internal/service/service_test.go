@@ -123,7 +123,7 @@ func TestService_Trade(t *testing.T) {
 		testErr := errors.New("error")
 
 		order := &trade.TradeResponse{
-			ID: id,
+			Id: id,
 		}
 		b, err := json.Marshal(order)
 		require.NoError(t, err)
@@ -160,7 +160,7 @@ func TestService_Trade(t *testing.T) {
 		)
 
 		order := &trade.TradeResponse{
-			ID: id,
+			Id: id,
 		}
 		b, err := json.Marshal(order)
 		require.NoError(t, err)

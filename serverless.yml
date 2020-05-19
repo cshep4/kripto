@@ -29,77 +29,10 @@ provider:
         - lambda:InvokeFunction
       Resource: "*"
   environment:
-    MONGO_URI: ${self:custom.secrets.mongoUri}
     TOKEN: ${self:custom.secrets.token}
     REGION: ${self:provider.region}
     AWS_ACCOUNT_ID: ${self:custom.secrets.awsAccountId}
     LUMIGO_TOKEN: ${self:custom.secrets.lumigoToken}
-
-package:
-  exclude:
-    - /**
-  include:
-    - services/data-storer/bin/**
-    - services/trader/bin/**
-    - services/rate-retriever/**
-
-functions:
-  read-data:
-    runtime: go1.x
-    memorySize: 128
-    handler: services/data-storer/bin/read
-    events:
-      - http:
-          path: /data
-          resp: http
-          method: get
-          cors: true
-  write-data:
-    runtime: go1.x
-    memorySize: 128
-    handler: services/data-storer/bin/write
-    events:
-      - http:
-          path: /data
-          resp: http
-          method: post
-          cors: true
-  rate-writer:
-    runtime: go1.x
-    memorySize: 128
-    handler: services/data-storer/bin/rate-writer
-    reservedConcurrency: 1
-    events:
-      - sqs:
-          batchSize: 1
-          arn:
-            Fn::GetAtt:
-              - RateUpdate
-              - Arn
-  rate-retriever:
-    runtime: nodejs12.x
-    memorySize: 128
-    handler: services/rate-retriever.handler
-    environment:
-      QUEUE_URL: "https://sqs.${self:provider.region}.amazonaws.com/${self:custom.secrets.awsAccountId}/RateUpdate"
-      COINBASE_API_KEY: ${self:custom.secrets.coinbaseApiKey}
-      COINBASE_SECRET_KEY: ${self:custom.secrets.coinbaseSecretKey}
-    events:
-      - schedule: rate(1 minute)
-  trader:
-    runtime: go1.x
-    memorySize: 128
-    handler: services/trader/bin/trader
-    environment:
-      QUEUE_URL: "https://sqs.${self:provider.region}.amazonaws.com/${self:custom.secrets.awsAccountId}/Trade"
-      COINBASE_PRO_KEY: ${self:custom.secrets.coinbaseProApiKey}
-      COINBASE_PRO_PASSPHRASE: ${self:custom.secrets.coinbaseProPassphrase}
-      COINBASE_PRO_SECRET: ${self:custom.secrets.coinbaseProSecretKey}
-      COINBASE_PRO_SANDBOX_KEY: ${self:custom.secrets.coinbaseProSandboxApiKey}
-      COINBASE_PRO_SANDBOX_PASSPHRASE: ${self:custom.secrets.coinbaseProSandboxPassphrase}
-      COINBASE_PRO_SANDBOX_SECRET: ${self:custom.secrets.coinbaseProSandboxSecretKey}
-      MOCK_TRADE: true
-      TRADE_AMOUNT: 10.00
 
 resources:
   Resources:
@@ -111,3 +44,85 @@ resources:
       Type: "AWS::SQS::Queue"
       Properties:
         QueueName: "Trade"
+
+package:
+  exclude:
+    - /**
+  include:
+    - services/data-storer/bin/**
+    - services/trader/bin/**
+    - services/rate-retriever/**
+
+functions:
+  #  read-data:
+  #    runtime: go1.x
+  #    memorySize: 128
+  #    handler: services/data-storer/bin/read
+  #    events:
+  #      - http:
+  #          path: /data
+  #          resp: http
+  #          method: get
+  #          cors: true
+  #  write-data:
+  #    runtime: go1.x
+  #    memorySize: 128
+  #    handler: services/data-storer/bin/write
+  #    events:
+  #      - http:
+  #          path: /data
+  #          resp: http
+  #          method: post
+  #          cors: true
+  rate-writer:
+    runtime: go1.x
+    memorySize: 128
+    handler: services/data-storer/bin/rate-writer
+    environment:
+      MONGO_URI: ${self:custom.secrets.mongoUri}
+    reservedConcurrency: 1
+    events:
+      - sqs:
+          batchSize: 1
+          arn:
+            Fn::GetAtt:
+              - RateUpdate
+              - Arn
+  trade-writer:
+    runtime: go1.x
+    memorySize: 128
+    handler: services/data-storer/bin/trade-writer
+    environment:
+      MONGO_URI: ${self:custom.secrets.mongoUri}
+    reservedConcurrency: 1
+    events:
+      - sqs:
+          batchSize: 1
+          arn:
+            Fn::GetAtt:
+              - Trade
+              - Arn
+  rate-retriever:
+    runtime: nodejs12.x
+    memorySize: 128
+    handler: services/rate-retriever.handler
+    environment:
+      QUEUE_URL: "https://sqs.${self:provider.region}.amazonaws.com/${self:custom.secrets.awsAccountId}/RateUpdate"
+      COINBASE_API_KEY: ${self:custom.secrets.coinbaseApiKey}
+      COINBASE_SECRET_KEY: ${self:custom.secrets.coinbaseSecretKey}
+    events:
+      - schedule: rate(1 minute)
+  trade:
+    runtime: go1.x
+    memorySize: 128
+    handler: services/trader/bin/trade
+    environment:
+      QUEUE_URL: "https://sqs.${self:provider.region}.amazonaws.com/${self:custom.secrets.awsAccountId}/Trade"
+      COINBASE_PRO_KEY: ${self:custom.secrets.coinbaseProApiKey}
+      COINBASE_PRO_PASSPHRASE: ${self:custom.secrets.coinbaseProPassphrase}
+      COINBASE_PRO_SECRET: ${self:custom.secrets.coinbaseProSecretKey}
+      COINBASE_PRO_SANDBOX_KEY: ${self:custom.secrets.coinbaseProSandboxApiKey}
+      COINBASE_PRO_SANDBOX_PASSPHRASE: ${self:custom.secrets.coinbaseProSandboxPassphrase}
+      COINBASE_PRO_SANDBOX_SECRET: ${self:custom.secrets.coinbaseProSandboxSecretKey}
+      MOCK_TRADE: true
+      TRADE_AMOUNT: 10.00

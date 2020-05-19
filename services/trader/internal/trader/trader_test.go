@@ -5,8 +5,7 @@ import (
 	"testing"
 
 	"github.com/cshep4/kripto/services/trader/internal/mocks/coinbase"
-	"github.com/cshep4/kripto/services/trader/internal/service"
-	"github.com/cshep4/kripto/services/trader/internal/trader"
+	trade "github.com/cshep4/kripto/services/trader/internal/trader"
 	"github.com/golang/mock/gomock"
 	"github.com/preichenberger/go-coinbasepro/v2"
 	"github.com/stretchr/testify/assert"
@@ -15,12 +14,12 @@ import (
 
 func TestNew(t *testing.T) {
 	t.Run("returns error if coinbase is empty", func(t *testing.T) {
-		trader, err := trader.New(nil)
+		trader, err := trade.New(nil)
 		require.Error(t, err)
 
 		assert.Nil(t, trader)
 
-		ipErr, ok := err.(service.InvalidParameterError)
+		ipErr, ok := err.(trade.InvalidParameterError)
 		assert.True(t, ok)
 		assert.Equal(t, "coinbase", ipErr.Parameter)
 	})
@@ -31,7 +30,7 @@ func TestNew(t *testing.T) {
 
 		coinbase := coinbase_mocks.NewMockCoinbase(ctrl)
 
-		trader, err := trader.New(coinbase)
+		trader, err := trade.New(coinbase)
 		require.NoError(t, err)
 
 		assert.NotNil(t, trader)
@@ -44,15 +43,15 @@ func TestTrader_Trade(t *testing.T) {
 		defer ctrl.Finish()
 
 		const (
-			amount                     = "amount"
-			tradeType trader.TradeType = "tradeType"
-			productId                  = "BTC-GBP"
-			orderType                  = "market"
+			amount                    = "amount"
+			tradeType trade.TradeType = "tradeType"
+			productId                 = "BTC-GBP"
+			orderType                 = "market"
 		)
 
 		coinbase := coinbase_mocks.NewMockCoinbase(ctrl)
 
-		trader, err := trader.New(coinbase)
+		trader, err := trade.New(coinbase)
 		require.NoError(t, err)
 
 		order := &coinbasepro.Order{
@@ -76,16 +75,16 @@ func TestTrader_Trade(t *testing.T) {
 		defer ctrl.Finish()
 
 		const (
-			amount                     = "amount"
-			tradeType trader.TradeType = "tradeType"
-			productId                  = "BTC-GBP"
-			orderType                  = "market"
-			orderId                    = "id"
+			amount                    = "amount"
+			tradeType trade.TradeType = "tradeType"
+			productId                 = "BTC-GBP"
+			orderType                 = "market"
+			orderId                   = "id"
 		)
 
 		coinbase := coinbase_mocks.NewMockCoinbase(ctrl)
 
-		trader, err := trader.New(coinbase)
+		trader, err := trade.New(coinbase)
 		require.NoError(t, err)
 
 		order := &coinbasepro.Order{
@@ -113,16 +112,16 @@ func TestTrader_Trade(t *testing.T) {
 		defer ctrl.Finish()
 
 		const (
-			amount                     = "amount"
-			tradeType trader.TradeType = "tradeType"
-			productId                  = "BTC-GBP"
-			orderType                  = "market"
-			orderId                    = "id"
+			amount                    = "amount"
+			tradeType trade.TradeType = "tradeType"
+			productId                 = "BTC-GBP"
+			orderType                 = "market"
+			orderId                   = "id"
 		)
 
 		coinbase := coinbase_mocks.NewMockCoinbase(ctrl)
 
-		trader, err := trader.New(coinbase)
+		trader, err := trade.New(coinbase)
 		require.NoError(t, err)
 
 		order := &coinbasepro.Order{
@@ -141,6 +140,6 @@ func TestTrader_Trade(t *testing.T) {
 		res, err := trader.Trade(tradeType, amount)
 		require.NoError(t, err)
 
-		assert.Equal(t, orderRes.ID, res.ID)
+		assert.Equal(t, orderRes.ID, res.Id)
 	})
 }
