@@ -23,11 +23,11 @@ func TestNew(t *testing.T) {
 
 	t.Run("returns error if MONGO_URI env variable is not valid", func(t *testing.T) {
 		err := os.Setenv("MONGO_URI", "invalid")
-		require.Error(t, err)
+		require.NoError(t, err)
 
 		t.Cleanup(func() {
 			err := os.Unsetenv("MONGO_URI")
-			require.Error(t, err)
+			require.NoError(t, err)
 		})
 
 		client, err := mongodb.New(context.Background())
@@ -37,12 +37,12 @@ func TestNew(t *testing.T) {
 	})
 
 	t.Run("returns error if cannot connect to mongo instance", func(t *testing.T) {
-		err := os.Setenv("MONGO_URI", "mongodb://localhost:27018")
-		require.Error(t, err)
+		err := os.Setenv("MONGO_URI", "mongod://not-real-host:27017")
+		require.NoError(t, err)
 
 		t.Cleanup(func() {
 			err := os.Unsetenv("MONGO_URI")
-			require.Error(t, err)
+			require.NoError(t, err)
 		})
 
 		client, err := mongodb.New(context.Background())
@@ -53,11 +53,11 @@ func TestNew(t *testing.T) {
 
 	t.Run("returns mongo client", func(t *testing.T) {
 		err := os.Setenv("MONGO_URI", "mongodb://localhost:27017")
-		require.Error(t, err)
+		require.NoError(t, err)
 
 		t.Cleanup(func() {
 			err := os.Unsetenv("MONGO_URI")
-			require.Error(t, err)
+			require.NoError(t, err)
 		})
 
 		ctx := context.Background()

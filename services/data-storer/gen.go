@@ -1,3 +1,4 @@
 package datastorer
 
-//go:generate mockgen -destination=internal/mocks/aws/handler.gen.go -package=aws_mocks github.com/aws/aws-lambda-go/lambda Handler
+//go:generate mockgen -destination=internal/mocks/trade/store.gen.go -package=trade_mocks github.com/cshep4/kripto/services/data-storer/internal/service TradeStore
+//go:generate mockgen -destination=internal/mocks/rate/store.gen.go -package=rate_mocks github.com/cshep4/kripto/services/data-storer/internal/service RateStore
