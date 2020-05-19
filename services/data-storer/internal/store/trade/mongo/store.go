@@ -59,10 +59,10 @@ func (s *store) ensureIndexes(ctx context.Context) error {
 		ctx,
 		mongo.IndexModel{
 			Keys: bsonx.Doc{
-				{Key: "dateTime", Value: bsonx.Int64(1)},
+				{Key: "createdAt", Value: bsonx.Int64(1)},
 			},
 			Options: options.Index().
-				SetName("dateTimeIdx").
+				SetName("createdAtIdx").
 				SetUnique(true).
 				SetBackground(true),
 		},
@@ -75,7 +75,20 @@ func (s *store) ensureIndexes(ctx context.Context) error {
 }
 
 func (s *store) Store(ctx context.Context, trade model.Trade) error {
-	panic("implement me")
+	t, err := fromTrade(trade)
+	if err != nil {
+		return fmt.Errorf("map_document: %w", err)
+	}
+
+	_, err = s.client.
+		Database(db).
+		Collection(collection).
+		InsertOne(ctx, t)
+	if err != nil {
+		return fmt.Errorf("insert_one: %w", err)
+	}
+
+	return nil
 }
 
 func (s *store) GetPreviousWeeks(ctx context.Context) ([]model.Trade, error) {

@@ -1,50 +1,62 @@
 package mongo
 
 import (
-	"fmt"
+	"errors"
 	"time"
 
 	"github.com/cshep4/kripto/services/data-storer/internal/model"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-type trade struct {
-	Id       primitive.ObjectID `bson:"_id"`
-	GBP      float64            `bson:"gbp"`
-	BTC      float64            `bson:"btc"`
-	Rate     float64            `bson:"rate"`
-	Type     string             `bson:"type"`
-	DateTime time.Time          `bson:"dateTime"`
-}
-
-func fromTrade(t model.Trade) (*trade, error) {
-	id := primitive.NewObjectID()
-
-	if t.Id != "" {
-		var err error
-		id, err = primitive.ObjectIDFromHex(t.Id)
-		if err != nil {
-			return nil, fmt.Errorf("object_id_from_hex: %s", t.Id)
-		}
+type (
+	trade struct {
+		Id         string    `bson:"_id"`
+		TradeType  string    `bson:"tradeType"`
+		ProductId  string    `bson:"productId"`
+		Settled    bool      `bson:"settled"`
+		CreatedAt  time.Time `bson:"createdAt,string,omitempty"`
+		SpentFunds float64   `bson:"funds,omitempty"`
+		Fees       float64   `bson:"fillFees,omitempty"`
+		Value      value     `bson:"value"`
 	}
 
-	return &trade{
-		Id:       id,
-		GBP:      t.GBP,
-		BTC:      t.BTC,
-		Rate:     t.Rate,
-		Type:     string(t.Type),
-		DateTime: t.DateTime,
+	value struct {
+		GBP float64 `bson:"gbp"`
+		BTC float64 `bson:"btc"`
+	}
+)
+
+func fromTrade(t model.Trade) (trade, error) {
+	if t.Id == "" {
+		return trade{}, errors.New("invalid_trade_id")
+	}
+
+	return trade{
+		Id:         t.Id,
+		TradeType:  string(t.TradeType),
+		ProductId:  t.ProductId,
+		Settled:    t.Settled,
+		CreatedAt:  t.CreatedAt,
+		SpentFunds: t.SpentFunds,
+		Fees:       t.Fees,
+		Value: value{
+			GBP: t.Value.GBP,
+			BTC: t.Value.BTC,
+		},
 	}, nil
 }
 
 func toTrade(t trade) model.Trade {
 	return model.Trade{
-		Id:       t.Id.Hex(),
-		GBP:      t.GBP,
-		BTC:      t.BTC,
-		Rate:     t.Rate,
-		Type:     model.TradeType(t.Type),
-		DateTime: t.DateTime,
+		Id:         t.Id,
+		TradeType:  model.TradeType(t.TradeType),
+		ProductId:  t.ProductId,
+		Settled:    t.Settled,
+		CreatedAt:  t.CreatedAt,
+		SpentFunds: t.SpentFunds,
+		Fees:       t.Fees,
+		Value: model.Value{
+			GBP: t.Value.GBP,
+			BTC: t.Value.BTC,
+		},
 	}
 }

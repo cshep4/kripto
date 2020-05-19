@@ -17,7 +17,7 @@ var (
 	cfg = lambda.FunctionConfig{
 		LogLevel:     "info",
 		ServiceName:  "data-storer",
-		FunctionName: "rate-writer",
+		FunctionName: "trade-writer",
 		Setup:        setup,
 		Initialised:  func() bool { return handler.Service != nil && handler.Idempotencer != nil },
 	}
@@ -56,7 +56,7 @@ func setup(ctx context.Context) error {
 		return fmt.Errorf("initialise_service: %w", err)
 	}
 
-	handler.Idempotencer, err = idempotency.New(ctx, "rate", mongoClient)
+	handler.Idempotencer, err = idempotency.New(ctx, "trade", mongoClient)
 	if err != nil {
 		return fmt.Errorf("initialise_idempotencer: %w", err)
 	}

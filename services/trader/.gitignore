@@ -14,4 +14,3 @@ Gopkg.lock
 Gopkg.toml
 
 bin/
-internal/mocks/

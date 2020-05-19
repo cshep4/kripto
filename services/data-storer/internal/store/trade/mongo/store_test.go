@@ -5,11 +5,12 @@ package mongo_test
 import (
 	"context"
 	"testing"
-	"time"
 
-	store "github.com/cshep4/kripto/services/data-storer/internal/store/rate/mongo"
+	"github.com/cshep4/kripto/services/data-storer/internal/model"
+	store "github.com/cshep4/kripto/services/data-storer/internal/store/trade/mongo"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/x/bsonx"
@@ -48,7 +49,7 @@ func TestNew(t *testing.T) {
 
 		t.Cleanup(func() {
 			err := client.
-				Database("rate").
+				Database("trade").
 				Drop(ctx)
 			require.NoError(t, err)
 
@@ -57,14 +58,14 @@ func TestNew(t *testing.T) {
 		})
 
 		_, err := client.
-			Database("rate").
-			Collection("rate").
+			Database("trade").
+			Collection("trade").
 			Indexes().
 			CreateOne(
 				ctx,
 				mongo.IndexModel{
-					Keys:    bsonx.Doc{{Key: "dateTime", Value: bsonx.Int64(1)}},
-					Options: options.Index().SetName("dateTimeIdx"),
+					Keys:    bsonx.Doc{{Key: "createdAt", Value: bsonx.Int64(1)}},
+					Options: options.Index().SetName("createdAtIdx"),
 				},
 			)
 		require.NoError(t, err)
@@ -82,7 +83,7 @@ func TestNew(t *testing.T) {
 
 		t.Cleanup(func() {
 			err := client.
-				Database("rate").
+				Database("trade").
 				Drop(ctx)
 			require.NoError(t, err)
 
@@ -97,64 +98,8 @@ func TestNew(t *testing.T) {
 	})
 }
 
-func TestStore_GetPreviousWeeks(t *testing.T) {
-	t.Run("get all rates from the past week", func(t *testing.T) {
-		ctx := context.Background()
-
-		client := newClient(t, ctx)
-		store, err := store.New(ctx, client)
-		require.NoError(t, err)
-
-		t.Cleanup(func() {
-			err := client.
-				Database("rate").
-				Drop(ctx)
-			require.NoError(t, err)
-
-			err = store.Close(ctx)
-			require.NoError(t, err)
-		})
-
-		var (
-			now        = time.Now().Round(time.Second).UTC()
-			yesterday  = time.Now().AddDate(0, 0, -1).Round(time.Second).UTC()
-			lastWeek   = time.Now().AddDate(0, 0, -8).Round(time.Second).UTC()
-			weekBefore = time.Now().AddDate(0, 0, -15).Round(time.Second).UTC()
-		)
-		const (
-			one   = float64(1)
-			two   = float64(2)
-			three = float64(3)
-			four  = float64(4)
-		)
-
-		err = store.Store(ctx, one, now)
-		require.NoError(t, err)
-
-		err = store.Store(ctx, two, weekBefore)
-		require.NoError(t, err)
-
-		err = store.Store(ctx, three, lastWeek)
-		require.NoError(t, err)
-
-		err = store.Store(ctx, four, yesterday)
-		require.NoError(t, err)
-
-		rates, err := store.GetPreviousWeeks(ctx)
-		require.NoError(t, err)
-
-		assert.Len(t, rates, 2)
-
-		assert.Equal(t, one, rates[0].Rate)
-		assert.Equal(t, now, rates[0].DateTime)
-
-		assert.Equal(t, four, rates[1].Rate)
-		assert.Equal(t, yesterday, rates[1].DateTime)
-	})
-}
-
 func TestStore_Store(t *testing.T) {
-	t.Run("stores rate in db", func(t *testing.T) {
+	t.Run("returns error if trade id is empty", func(t *testing.T) {
 		ctx := context.Background()
 
 		client := newClient(t, ctx)
@@ -163,7 +108,7 @@ func TestStore_Store(t *testing.T) {
 
 		t.Cleanup(func() {
 			err := client.
-				Database("rate").
+				Database("trade").
 				Drop(ctx)
 			require.NoError(t, err)
 
@@ -171,18 +116,50 @@ func TestStore_Store(t *testing.T) {
 			require.NoError(t, err)
 		})
 
-		const rate = 1234.124
-		now := time.Now().Round(time.Second).UTC()
+		err = store.Store(ctx, model.Trade{})
+		require.Error(t, err)
 
-		err = store.Store(ctx, rate, now)
+		assert.Contains(t, err.Error(), "invalid_trade_id")
+	})
+
+	t.Run("stores trade in db", func(t *testing.T) {
+		ctx := context.Background()
+
+		client := newClient(t, ctx)
+		store, err := store.New(ctx, client)
 		require.NoError(t, err)
 
-		rates, err := store.GetPreviousWeeks(ctx)
+		t.Cleanup(func() {
+			err := client.
+				Database("trade").
+				Drop(ctx)
+			require.NoError(t, err)
+
+			err = store.Close(ctx)
+			require.NoError(t, err)
+		})
+
+		const tradeId = "🤝"
+		trade := model.Trade{
+			Id: tradeId,
+		}
+
+		err = store.Store(ctx, trade)
 		require.NoError(t, err)
 
-		assert.Len(t, rates, 1)
-		assert.Equal(t, rate, rates[0].Rate)
-		assert.Equal(t, now, rates[0].DateTime)
+		var res map[string]interface{}
+		err = client.
+			Database("trade").
+			Collection("trade").
+			FindOne(
+				ctx,
+				bson.M{
+					"_id": tradeId,
+				},
+			).Decode(&res)
+		require.NoError(t, err)
+
+		assert.Equal(t, tradeId, res["_id"])
 	})
 }
 

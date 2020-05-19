@@ -133,8 +133,28 @@ jobs:
       - run:
           name: Create secrets file
           command: |
-            JSON='{"mongoUri":"%s","token":"%s","coinbaseApiKey":"%s","coinbaseSecretKey":"%s", "awsAccountId": "%s", "lumigoToken": "%s"}\n'
-            printf "$JSON" "${MONGO_URI}" "${TOKEN}" "${COINBASE_API_KEY}" "${COINBASE_SECRET_KEY}" "${AWS_ACCOUNT_ID}" "${LUMIGO_TOKEN}" > secrets.json
+            JSON='{
+              "mongoUri":"%s",
+              "token":"%s",
+              "coinbaseApiKey":"%s",
+              "coinbaseSecretKey":"%s",
+              "coinbaseProApiKey":"%s",
+              "coinbaseProPassphrase":"%s",
+              "coinbaseProSecretKey":"%s",
+              "coinbaseProSandboxApiKey":"%s",
+              "coinbaseProSandboxPassphrase":"%s",
+              "coinbaseProSandboxSecretKey":"%s",
+              "awsAccountId": "%s",
+              "lumigoToken": "%s"
+            }\n'
+            printf "$JSON" \
+            "${MONGO_URI}" \
+            "${TOKEN}" \
+            "${COINBASE_API_KEY}" "${COINBASE_SECRET_KEY}" \
+            "${COINBASE_PRO_KEY}" "${COINBASE_PRO_PASSPHRASE}" "${COINBASE_PRO_SECRET}" \
+            "${COINBASE_PRO_SANDBOX_KEY}" "${COINBASE_PRO_SANDBOX_PASSPHRASE}" "${COINBASE_PRO_SANDBOX_SECRET}" \
+            "${AWS_ACCOUNT_ID}" \
+            "${LUMIGO_TOKEN}" > secrets.json
 
       - run:
           name: Install Serverless CLI, Configure Profile, Deploy
@@ -245,19 +265,33 @@ workflows:
           service_path: services/data-storer
           requires:
             - vendor
-  #  rate-retriever:
-  #    jobs:
-  #      - checkout-code
-  #      - vendor:
-  #          docker_image: circleci/node:8.10
-  #          service_path: services/rate-retriever
-  #          dependency_file: package-lock.json
-  #          dependencies_location: services/rate-retriever/node_modules
-  #          requires:
-  #            - checkout-code
-  deploy-functions:
+  trader:
     jobs:
       - checkout-code
+      - vendor:
+          docker_image: cimg/go:1.14
+          service_path: services/trader
+          dependency_file: go.sum
+          dependencies_location: /go/pkg/mod
+          requires:
+            - checkout-code
+      - unit:
+          docker_image: cimg/go:1.14
+          service_path: services/trader
+          requires:
+            - vendor
+      - integration:
+          docker_image: cimg/go:1.14
+          service_path: services/trader
+          requires:
+            - vendor
+  deploy-functions:
+    jobs:
+      - checkout-code:
+          filters:
+            branches:
+              only:
+                - master
       - build:
           name: build-data-storer
           docker_image: cimg/go:1.14
@@ -269,11 +303,21 @@ workflows:
               only:
                 - master
       - build:
+          name: build-trader
+          docker_image: cimg/go:1.14
+          service_path: services/trader
+          requires:
+            - build-data-storer
+          filters:
+            branches:
+              only:
+                - master
+      - build:
           name: build-rate-retriever
           docker_image: circleci/node:8.10
           service_path: services/rate-retriever
           requires:
-            - build-data-storer
+            - build-trader
           filters:
             branches:
               only:

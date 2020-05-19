@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/aws/aws-lambda-go/lambda"
+	"github.com/cshep4/kripto/shared/go/log"
 )
 
 type (
@@ -42,4 +43,16 @@ func (pe *postExecutor) Invoke(ctx context.Context, payload []byte) ([]byte, err
 	}
 
 	return res, nil
+}
+
+func LogMiddleware(level, service, function string) preExecutorFunc {
+	return func(ctx context.Context, payload []byte) (context.Context, []byte, error) {
+		ctx = log.WithFunctionName(ctx,
+			log.New(level),
+			service,
+			function,
+		)
+
+		return ctx, payload, nil
+	}
 }

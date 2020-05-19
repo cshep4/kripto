@@ -3,10 +3,10 @@ package mongo
 import (
 	"context"
 	"fmt"
-	"go.mongodb.org/mongo-driver/bson"
 	"time"
 
 	"github.com/cshep4/kripto/services/data-storer/internal/model"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -57,18 +57,19 @@ func (s *store) ensureIndexes(ctx context.Context) error {
 	_, err := s.client.
 		Database(db).
 		Collection(collection).
-		Indexes().CreateOne(
-		ctx,
-		mongo.IndexModel{
-			Keys: bsonx.Doc{
-				{Key: "dateTime", Value: bsonx.Int64(1)},
+		Indexes().
+		CreateOne(
+			ctx,
+			mongo.IndexModel{
+				Keys: bsonx.Doc{
+					{Key: "dateTime", Value: bsonx.Int64(1)},
+				},
+				Options: options.Index().
+					SetName("dateTimeIdx").
+					SetUnique(true).
+					SetBackground(true),
 			},
-			Options: options.Index().
-				SetName("dateTimeIdx").
-				SetUnique(true).
-				SetBackground(true),
-		},
-	)
+		)
 	if err != nil {
 		return err
 	}
