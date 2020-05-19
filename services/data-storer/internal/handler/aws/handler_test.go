@@ -304,7 +304,7 @@ func TestHandler_StoreRate(t *testing.T) {
 			}
 			ctx            = log.WithServiceName(context.Background(), log.New("debug"), "test")
 			idempotencyKey = "idempotency key"
-			now            = time.Now().Format(time.RFC3339)
+			now            = time.Now().UTC().Format(time.RFC3339)
 			event          = events.SQSEvent{
 				Records: []events.SQSMessage{{
 					Body: fmt.Sprintf(`{
@@ -337,7 +337,7 @@ func TestHandler_StoreRate(t *testing.T) {
 			}
 			ctx            = log.WithServiceName(context.Background(), log.New("debug"), "test")
 			idempotencyKey = "idempotency key"
-			now            = time.Now().Format(time.RFC3339)
+			now            = time.Now().UTC().Format(time.RFC3339)
 			event          = events.SQSEvent{
 				Records: []events.SQSMessage{{
 					Body: fmt.Sprintf(`{
@@ -369,7 +369,7 @@ func TestHandler_StoreRate(t *testing.T) {
 			}
 			ctx            = log.WithServiceName(context.Background(), log.New("debug"), "test")
 			idempotencyKey = "idempotency key"
-			now            = time.Now().Round(time.Second)
+			now            = time.Now().UTC().Round(time.Second)
 			rate           = 123.45
 			event          = events.SQSEvent{
 				Records: []events.SQSMessage{{
@@ -405,7 +405,7 @@ func TestHandler_StoreRate(t *testing.T) {
 			}
 			ctx            = log.WithServiceName(context.Background(), log.New("debug"), "test")
 			idempotencyKey = "idempotency key"
-			now            = time.Now().Round(time.Second)
+			now            = time.Now().UTC().Round(time.Second)
 			rate           = 123.45
 			event          = events.SQSEvent{
 				Records: []events.SQSMessage{{
