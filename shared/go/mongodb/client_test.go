@@ -3,12 +3,13 @@
 package mongodb_test
 
 import (
+	"os"
+	"testing"
+
 	"github.com/cshep4/kripto/shared/go/mongodb"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
-	"os"
-	"testing"
 )
 
 func TestNew(t *testing.T) {
