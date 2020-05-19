@@ -58,18 +58,19 @@ func (s *store) ensureIndexes(ctx context.Context) error {
 	_, err := s.client.
 		Database(db).
 		Collection(collection).
-		Indexes().CreateOne(
-		ctx,
-		mongo.IndexModel{
-			Keys: bsonx.Doc{
-				{Key: "dateTime", Value: bsonx.Int64(1)},
+		Indexes().
+		CreateOne(
+			ctx,
+			mongo.IndexModel{
+				Keys: bsonx.Doc{
+					{Key: "dateTime", Value: bsonx.Int64(1)},
+				},
+				Options: options.Index().
+					SetName("dateTimeIdx").
+					SetUnique(true).
+					SetBackground(true),
 			},
-			Options: options.Index().
-				SetName("dateTimeIdx").
-				SetUnique(true).
-				SetBackground(true),
-		},
-	)
+		)
 	if err != nil {
 		return err
 	}

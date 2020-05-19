@@ -1,7 +1,7 @@
 package mongo
 
 import (
-	"fmt"
+	"errors"
 	"time"
 
 	"github.com/cshep4/kripto/services/data-storer/internal/model"
@@ -26,8 +26,8 @@ type (
 )
 
 func fromTrade(t model.Trade) (trade, error) {
-	if t.Id != "" {
-		return trade{}, fmt.Errorf("invalid_trade_id: %s", t.Id)
+	if t.Id == "" {
+		return trade{}, errors.New("invalid_trade_id")
 	}
 
 	return trade{
