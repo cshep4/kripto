@@ -3,6 +3,9 @@ package service_test
 import (
 	"context"
 	"errors"
+	"testing"
+	"time"
+
 	"github.com/cshep4/kripto/services/data-storer/internal/mocks/rate"
 	"github.com/cshep4/kripto/services/data-storer/internal/mocks/trade"
 	"github.com/cshep4/kripto/services/data-storer/internal/model"
@@ -10,8 +13,6 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"testing"
-	"time"
 )
 
 func TestNew(t *testing.T) {

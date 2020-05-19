@@ -4,6 +4,8 @@ package mongo_test
 
 import (
 	"context"
+	"testing"
+
 	"github.com/cshep4/kripto/services/data-storer/internal/model"
 	store "github.com/cshep4/kripto/services/data-storer/internal/store/trade/mongo"
 	"github.com/stretchr/testify/assert"
@@ -12,7 +14,6 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/x/bsonx"
-	"testing"
 )
 
 func TestNew(t *testing.T) {

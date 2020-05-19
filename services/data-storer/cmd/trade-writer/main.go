@@ -4,12 +4,11 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/cshep4/kripto/shared/go/idempotency"
-
 	"github.com/cshep4/kripto/services/data-storer/internal/handler/aws"
 	"github.com/cshep4/kripto/services/data-storer/internal/service"
 	rate "github.com/cshep4/kripto/services/data-storer/internal/store/rate/mongo"
 	trade "github.com/cshep4/kripto/services/data-storer/internal/store/trade/mongo"
+	"github.com/cshep4/kripto/shared/go/idempotency"
 	"github.com/cshep4/kripto/shared/go/lambda"
 	"github.com/cshep4/kripto/shared/go/mongodb"
 )

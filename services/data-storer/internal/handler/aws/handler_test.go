@@ -4,6 +4,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"testing"
+	"time"
+
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/cshep4/kripto/services/data-storer/internal/handler/aws"
 	"github.com/cshep4/kripto/services/data-storer/internal/mocks/idempotency"
@@ -13,8 +16,6 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"testing"
-	"time"
 )
 
 func TestHandler_StoreTrade(t *testing.T) {

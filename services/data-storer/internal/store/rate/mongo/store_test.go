@@ -4,9 +4,10 @@ package mongo_test
 
 import (
 	"context"
-	"go.mongodb.org/mongo-driver/x/bsonx"
 	"testing"
 	"time"
+
+	"go.mongodb.org/mongo-driver/x/bsonx"
 
 	store "github.com/cshep4/kripto/services/data-storer/internal/store/rate/mongo"
 	"github.com/stretchr/testify/assert"

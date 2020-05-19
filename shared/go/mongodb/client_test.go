@@ -16,7 +16,7 @@ func TestNew(t *testing.T) {
 	t.Run("returns error if MONGO_URI env variable is not set", func(t *testing.T) {
 		err := os.Unsetenv("MONGO_URI")
 		require.NoError(t, err)
-		
+
 		client, err := mongodb.New(context.Background())
 		require.Error(t, err)
 
