@@ -287,7 +287,11 @@ workflows:
             - vendor
   deploy-functions:
     jobs:
-      - checkout-code
+      - checkout-code:
+          filters:
+            branches:
+              only:
+                - master
       - build:
           name: build-data-storer
           docker_image: cimg/go:1.14

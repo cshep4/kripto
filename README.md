@@ -8,8 +8,8 @@ Kripto ₿ trading platform, periodically checks the BTC-GBP exchange rate using
 
 | Function                                                | Service                                     | Runtime       | Events             | Description                                                                       |
 | ------------------------------------------------------- | ------------------------------------------- | ------------- | ------------------ | --------------------------------------------------------------------------------- |
-| [rate-retriever](./services/rate-retriever)             | [rate-retriever](./services/rate-retriever) | Node.js       | Schedule           | Retrieves the BTC-GBP exchange rate from Coinbase and publishes result to SNS.    |
-| [trade](./services/trader/cmd/trade)                    | [trader](./services/trader)                 | Go            | Invocation         | Calls Coinbase Pro to make a BTC-GBP trade and publishes result to SNS.           |
+| [rate-retriever](./services/rate-retriever)             | [rate-retriever](./services/rate-retriever) | Node.js       | Schedule           | Retrieves the BTC-GBP exchange rate from Coinbase and publishes result to SQS.    |
+| [trade](./services/trader/cmd/trade)                    | [trader](./services/trader)                 | Go            | Invocation         | Calls Coinbase Pro to make a BTC-GBP trade and publishes result to SQS.           |
 | [rate-writer](./services/data-storer/cmd/rate-writer)   | [data-storer](./services/data-storer)       | Go            | SQS                | Stores a trade in the database.                                                   |
 | [trade-writer](./services/data-storer/cmd/trade-writer) | [data-storer](./services/data-storer)       | Go            | SQS                | Stores a rate in the database.                                                    |
 
