@@ -30,7 +30,7 @@ func TestHandler_StoreTrade(t *testing.T) {
 				Service:      service,
 				Idempotencer: idempotencer,
 			}
-			ctx = context.Background()
+			ctx = log.WithServiceName(context.Background(), log.New("debug"), "test")
 		)
 
 		err := handler.StoreTrade(ctx, events.SQSEvent{})
@@ -50,7 +50,7 @@ func TestHandler_StoreTrade(t *testing.T) {
 				Service:      service,
 				Idempotencer: idempotencer,
 			}
-			ctx   = context.Background()
+			ctx   = log.WithServiceName(context.Background(), log.New("debug"), "test")
 			event = events.SQSEvent{
 				Records: []events.SQSMessage{{
 					Body: "invalid",
@@ -110,6 +110,8 @@ func TestHandler_StoreTrade(t *testing.T) {
 				Records: []events.SQSMessage{{
 					Body: `{
 						"id": "tradeId",
+						"side": "buy",
+						"productId": "productId",
 						"funds": "1",
 						"fillFees": "2",
 						"filledSize": "3",
@@ -143,6 +145,8 @@ func TestHandler_StoreTrade(t *testing.T) {
 				Records: []events.SQSMessage{{
 					Body: `{
 						"id": "tradeId",
+						"side": "buy",
+						"productId": "productId",
 						"funds": "1",
 						"fillFees": "2",
 						"filledSize": "3",
@@ -175,6 +179,8 @@ func TestHandler_StoreTrade(t *testing.T) {
 				Records: []events.SQSMessage{{
 					Body: `{
 						"id": "tradeId",
+						"side": "buy",
+						"productId": "productId",
 						"funds": "1",
 						"fillFees": "2",
 						"filledSize": "3",
@@ -185,6 +191,8 @@ func TestHandler_StoreTrade(t *testing.T) {
 			testErr = errors.New("error")
 			trade   = model.Trade{
 				Id:         "tradeId",
+				TradeType:  model.Buy,
+				ProductId:  "productId",
 				SpentFunds: float64(1),
 				Fees:       float64(2),
 				Value: model.Value{
@@ -219,6 +227,8 @@ func TestHandler_StoreTrade(t *testing.T) {
 				Records: []events.SQSMessage{{
 					Body: `{
 						"id": "tradeId",
+						"side": "buy",
+						"productId": "productId",
 						"funds": "1",
 						"fillFees": "2",
 						"filledSize": "3",
@@ -228,6 +238,8 @@ func TestHandler_StoreTrade(t *testing.T) {
 			}
 			trade = model.Trade{
 				Id:         "tradeId",
+				TradeType:  model.Buy,
+				ProductId:  "productId",
 				SpentFunds: float64(1),
 				Fees:       float64(2),
 				Value: model.Value{

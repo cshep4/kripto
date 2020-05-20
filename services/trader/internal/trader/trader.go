@@ -19,9 +19,9 @@ type (
 		Id            string    `json:"id"`
 		Side          string    `json:"side"`
 		ProductId     string    `json:"productId"`
-		Funds         string    `json:"funds,omitempty"` // Spent Funds in GBP.
 		Settled       bool      `json:"settled"`
 		CreatedAt     time.Time `json:"createdAt,string,omitempty"`
+		Funds         string    `json:"funds,omitempty"`         // Spent Funds in GBP.
 		FillFees      string    `json:"fillFees,omitempty"`      // Fees in GBP.
 		FilledSize    string    `json:"filledSize,omitempty"`    // Value in BTC.
 		ExecutedValue string    `json:"executedValue,omitempty"` // Value in GBP.

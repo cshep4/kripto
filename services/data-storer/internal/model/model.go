@@ -56,31 +56,49 @@ type (
 		Id            string    `json:"id"`
 		Side          TradeType `json:"side"`
 		ProductId     string    `json:"productId"`
-		Funds         string    `json:"funds,omitempty"` // Spent Funds in GBP.
 		Settled       bool      `json:"settled"`
-		CreatedAt     time.Time `json:"createdAt,string,omitempty"`
-		FillFees      string    `json:"fillFees,omitempty"`      // Fees in GBP.
-		FilledSize    string    `json:"filledSize,omitempty"`    // Value in BTC.
-		ExecutedValue string    `json:"executedValue,omitempty"` // Value in GBP.
+		CreatedAt     time.Time `json:"createdAt"`
+		Funds         string    `json:"funds"`         // Spent Funds in GBP.
+		FillFees      string    `json:"fillFees"`      // Fees in GBP.
+		FilledSize    string    `json:"filledSize"`    // Value in BTC.
+		ExecutedValue string    `json:"executedValue"` // Value in GBP.
+	}
+
+	InvalidPropertyError struct {
+		Parameter string
+		Err       string
 	}
 )
 
+func (i InvalidPropertyError) Error() string {
+	return fmt.Sprintf("invalid parameter %s: %s", i.Parameter, i.Err)
+}
+
 func (t *TradeRequest) ToTrade() (Trade, error) {
+	switch {
+	case t.Id == "":
+		return Trade{}, InvalidPropertyError{Parameter: "id", Err: "value is empty"}
+	case t.Side == "":
+		return Trade{}, InvalidPropertyError{Parameter: "side", Err: "value is empty"}
+	case t.ProductId == "":
+		return Trade{}, InvalidPropertyError{Parameter: "productId", Err: "value is empty"}
+	}
+
 	funds, err := strconv.ParseFloat(strings.TrimSpace(t.Funds), 64)
 	if err != nil {
-		return Trade{}, fmt.Errorf("invalid_funds: %w", err)
+		return Trade{}, InvalidPropertyError{Parameter: "funds", Err: err.Error()}
 	}
 	fees, err := strconv.ParseFloat(strings.TrimSpace(t.FillFees), 64)
 	if err != nil {
-		return Trade{}, fmt.Errorf("invalid_fees: %w", err)
+		return Trade{}, InvalidPropertyError{Parameter: "fillFees", Err: err.Error()}
 	}
 	btc, err := strconv.ParseFloat(strings.TrimSpace(t.FilledSize), 64)
 	if err != nil {
-		return Trade{}, fmt.Errorf("invalid_btc_filled_size: %w", err)
+		return Trade{}, InvalidPropertyError{Parameter: "filledSize", Err: err.Error()}
 	}
 	gbp, err := strconv.ParseFloat(strings.TrimSpace(t.ExecutedValue), 64)
 	if err != nil {
-		return Trade{}, fmt.Errorf("invalid_gbp_executed_value: %w", err)
+		return Trade{}, InvalidPropertyError{Parameter: "executedValue", Err: err.Error()}
 	}
 
 	return Trade{

@@ -71,17 +71,17 @@ func (h *Handler) StoreTrade(ctx context.Context, sqsEvent events.SQSEvent) erro
 			continue
 		}
 
-		ok, err := h.Idempotencer.Check(ctx, req.Id)
+		ok, err := h.Idempotencer.Check(ctx, trade.Id)
 		if err != nil {
 			log.Error(ctx, "error_checking_idempotency", log.ErrorParam(err))
 			continue
 		}
 		if ok {
 			log.Info(ctx, "msg_already_processed",
-				log.SafeParam("id", req.Id),
-				log.SafeParam("createdAt", req.CreatedAt),
-				log.SafeParam("btc", req.FilledSize),
-				log.SafeParam("gbp", req.ExecutedValue),
+				log.SafeParam("id", trade.Id),
+				log.SafeParam("createdAt", trade.CreatedAt),
+				log.SafeParam("btc", trade.Value.BTC),
+				log.SafeParam("gbp", trade.Value.GBP),
 			)
 			continue
 		}
@@ -89,10 +89,10 @@ func (h *Handler) StoreTrade(ctx context.Context, sqsEvent events.SQSEvent) erro
 		err = h.Service.StoreTrade(ctx, trade)
 		if err != nil {
 			log.Error(ctx, "error_storing_trade",
-				log.SafeParam("id", req.Id),
-				log.SafeParam("createdAt", req.CreatedAt),
-				log.SafeParam("btc", req.FilledSize),
-				log.SafeParam("gbp", req.ExecutedValue),
+				log.SafeParam("id", trade.Id),
+				log.SafeParam("createdAt", trade.CreatedAt),
+				log.SafeParam("btc", trade.Value.BTC),
+				log.SafeParam("gbp", trade.Value.GBP),
 				log.ErrorParam(err),
 			)
 			return err
