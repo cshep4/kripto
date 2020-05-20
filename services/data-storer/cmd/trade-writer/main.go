@@ -25,7 +25,7 @@ var (
 	handler = &aws.Handler{}
 
 	runner = lambda.New(
-		handler.StoreRate,
+		handler.StoreTrade,
 		lambda.WithPreExecute(lambda.LogMiddleware(cfg.LogLevel, cfg.ServiceName, cfg.FunctionName)),
 	)
 )
