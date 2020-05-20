@@ -35,15 +35,7 @@ provider:
     LUMIGO_TOKEN: ${self:custom.secrets.lumigoToken}
 
 resources:
-  Resources:
-    RateUpdate:
-      Type: "AWS::SQS::Queue"
-      Properties:
-        QueueName: "RateUpdate"
-    Trade:
-      Type: "AWS::SQS::Queue"
-      Properties:
-        QueueName: "Trade"
+  - ${file(serverless/resources.yml)}
 
 package:
   exclude:
