@@ -71,6 +71,12 @@ func (h *Handler) StoreTrade(ctx context.Context, sqsEvent events.SQSEvent) erro
 			continue
 		}
 
+		log.Error(ctx, "msg_body",
+			log.SafeParam("msg", msg.Body),
+			log.SafeParam("req", req),
+			log.SafeParam("trade", trade),
+		)
+
 		ok, err := h.Idempotencer.Check(ctx, trade.Id)
 		if err != nil {
 			log.Error(ctx, "error_checking_idempotency", log.ErrorParam(err))
