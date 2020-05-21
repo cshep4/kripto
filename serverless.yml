@@ -92,7 +92,7 @@ functions:
           batchSize: 1
           arn:
             Fn::GetAtt:
-              - Trade
+              - storeTradeQueue
               - Arn
   rate-retriever:
     runtime: nodejs12.x
@@ -109,6 +109,7 @@ functions:
     memorySize: 128
     handler: services/trader/bin/trade
     environment:
+      TOPIC: "arn:aws:sns:${self:provider.region}:${self:custom.secrets.awsAccountId}:Trade"
       QUEUE_URL: "https://sqs.${self:provider.region}.amazonaws.com/${self:custom.secrets.awsAccountId}/Trade"
       COINBASE_PRO_KEY: ${self:custom.secrets.coinbaseProApiKey}
       COINBASE_PRO_PASSPHRASE: ${self:custom.secrets.coinbaseProPassphrase}

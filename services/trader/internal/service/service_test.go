@@ -7,8 +7,8 @@ import (
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/sqs"
-	"github.com/cshep4/kripto/services/trader/internal/mocks/aws"
+	"github.com/aws/aws-sdk-go/service/sns"
+	"github.com/cshep4/kripto/services/trader/internal/mocks/publish"
 	"github.com/cshep4/kripto/services/trader/internal/mocks/trader"
 	"github.com/cshep4/kripto/services/trader/internal/service"
 	trade "github.com/cshep4/kripto/services/trader/internal/trader"
@@ -29,7 +29,7 @@ func TestNew(t *testing.T) {
 		assert.Equal(t, "amount", ipErr.Parameter)
 	})
 
-	t.Run("returns error if queueUrl is empty", func(t *testing.T) {
+	t.Run("returns error if topic is empty", func(t *testing.T) {
 		s, err := service.New("amount", "", nil, nil)
 		require.Error(t, err)
 
@@ -37,10 +37,10 @@ func TestNew(t *testing.T) {
 
 		ipErr, ok := err.(service.InvalidParameterError)
 		assert.True(t, ok)
-		assert.Equal(t, "queueUrl", ipErr.Parameter)
+		assert.Equal(t, "topic", ipErr.Parameter)
 	})
 
-	t.Run("returns error if sqsClient is empty", func(t *testing.T) {
+	t.Run("returns error if publisher is empty", func(t *testing.T) {
 		s, err := service.New("amount", "url", nil, nil)
 		require.Error(t, err)
 
@@ -48,16 +48,16 @@ func TestNew(t *testing.T) {
 
 		ipErr, ok := err.(service.InvalidParameterError)
 		assert.True(t, ok)
-		assert.Equal(t, "sqsClient", ipErr.Parameter)
+		assert.Equal(t, "publisher", ipErr.Parameter)
 	})
 
 	t.Run("returns error if trader is empty", func(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
-		sqs := aws_mocks.NewMockSQS(ctrl)
+		publisher := publish_mocks.NewMockPublisher(ctrl)
 
-		s, err := service.New("amount", "url", sqs, nil)
+		s, err := service.New("amount", "url", publisher, nil)
 		require.Error(t, err)
 
 		assert.Nil(t, s)
@@ -71,10 +71,10 @@ func TestNew(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
-		sqs := aws_mocks.NewMockSQS(ctrl)
+		publisher := publish_mocks.NewMockPublisher(ctrl)
 		trader := trader_mocks.NewMockTrader(ctrl)
 
-		s, err := service.New("amount", "url", sqs, trader)
+		s, err := service.New("amount", "url", publisher, trader)
 		require.NoError(t, err)
 
 		assert.NotNil(t, s)
@@ -86,7 +86,7 @@ func TestService_Trade(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
-		sqs := aws_mocks.NewMockSQS(ctrl)
+		publisher := publish_mocks.NewMockPublisher(ctrl)
 		trader := trader_mocks.NewMockTrader(ctrl)
 
 		const (
@@ -98,7 +98,7 @@ func TestService_Trade(t *testing.T) {
 
 		trader.EXPECT().Trade(trade.TradeType(tradeType), amount).Return(nil, testErr)
 
-		s, err := service.New(amount, url, sqs, trader)
+		s, err := service.New(amount, url, publisher, trader)
 		require.NoError(t, err)
 
 		err = s.Trade(context.Background(), tradeType)
@@ -111,12 +111,12 @@ func TestService_Trade(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
-		sqsClient := aws_mocks.NewMockSQS(ctrl)
+		publisher := publish_mocks.NewMockPublisher(ctrl)
 		trader := trader_mocks.NewMockTrader(ctrl)
 
 		const (
 			amount    = "amount"
-			url       = "url"
+			topic     = "topic"
 			tradeType = "type"
 			id        = "tradeId"
 		)
@@ -128,18 +128,19 @@ func TestService_Trade(t *testing.T) {
 		b, err := json.Marshal(order)
 		require.NoError(t, err)
 
-		msg := &sqs.SendMessageInput{
-			MessageBody: aws.String(string(b)),
-			QueueUrl:    aws.String(url),
+		publishInput := &sns.PublishInput{
+			Message:  aws.String(string(b)),
+			TopicArn: aws.String(topic),
 		}
+		ctx := context.Background()
 
 		trader.EXPECT().Trade(trade.TradeType(tradeType), amount).Return(order, nil)
-		sqsClient.EXPECT().SendMessage(msg).Return(nil, testErr)
+		publisher.EXPECT().PublishWithContext(ctx, publishInput).Return(nil, testErr)
 
-		s, err := service.New(amount, url, sqsClient, trader)
+		s, err := service.New(amount, topic, publisher, trader)
 		require.NoError(t, err)
 
-		err = s.Trade(context.Background(), tradeType)
+		err = s.Trade(ctx, tradeType)
 		require.Error(t, err)
 
 		assert.True(t, errors.Is(err, testErr))
@@ -149,12 +150,12 @@ func TestService_Trade(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
-		sqsClient := aws_mocks.NewMockSQS(ctrl)
+		publisher := publish_mocks.NewMockPublisher(ctrl)
 		trader := trader_mocks.NewMockTrader(ctrl)
 
 		const (
 			amount    = "amount"
-			url       = "url"
+			topic     = "topic"
 			tradeType = "type"
 			id        = "tradeId"
 		)
@@ -165,18 +166,19 @@ func TestService_Trade(t *testing.T) {
 		b, err := json.Marshal(order)
 		require.NoError(t, err)
 
-		msg := &sqs.SendMessageInput{
-			MessageBody: aws.String(string(b)),
-			QueueUrl:    aws.String(url),
+		publishInput := &sns.PublishInput{
+			Message:  aws.String(string(b)),
+			TopicArn: aws.String(topic),
 		}
+		ctx := context.Background()
 
 		trader.EXPECT().Trade(trade.TradeType(tradeType), amount).Return(order, nil)
-		sqsClient.EXPECT().SendMessage(msg).Return(nil, nil)
+		publisher.EXPECT().PublishWithContext(ctx, publishInput).Return(nil, nil)
 
-		s, err := service.New(amount, url, sqsClient, trader)
+		s, err := service.New(amount, topic, publisher, trader)
 		require.NoError(t, err)
 
-		err = s.Trade(context.Background(), tradeType)
+		err = s.Trade(ctx, tradeType)
 		require.NoError(t, err)
 	})
 }

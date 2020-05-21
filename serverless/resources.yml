@@ -3,7 +3,102 @@ Resources:
     Type: "AWS::SQS::Queue"
     Properties:
       QueueName: "RateUpdate"
-  Trade:
+  #  Trade:
+  #    Type: "AWS::SQS::Queue"
+  #    Properties:
+  #      QueueName: "Trade"
+
+  # Create our SNS Topic
+  tradeTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: "Trade"
+
+  # Create our 'storeTradeQueue' SQS queue
+  storeTradeQueue:
     Type: "AWS::SQS::Queue"
     Properties:
-      QueueName: "Trade"
+      QueueName: "StoreTrade"
+      RedrivePolicy:
+        deadLetterTargetArn: !GetAtt
+          - storeTradeQueueDLQ
+          - Arn
+        maxReceiveCount: 3
+  # Create our 'storeTradeQueue' Dead Letter Queue SQS queue
+  storeTradeQueueDLQ:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: "StoreTradeDLQ"
+  # Create our 'syncAccountQueue' SQS queue
+  syncAccountQueue:
+    Type: "AWS::SQS::Queue"
+    Properties:
+      QueueName: "SyncAccount"
+      RedrivePolicy:
+        deadLetterTargetArn: !GetAtt
+          - syncAccountQueueDLQ
+          - Arn
+        maxReceiveCount: 3
+  # Create our 'syncAccountQueue' Dead Letter Queue SQS queue
+  syncAccountQueueDLQ:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: "SyncAccountDLQ"
+  # Create our queue policy for the 'storeTradeQueue'
+  snsToStoreTradeQueueSqsPolicy:
+    Type: AWS::SQS::QueuePolicy
+    Properties:
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: "allow-sns-messages"
+            Effect: Allow
+            Principal: "*"
+            Resource: !GetAtt
+              - storeTradeQueue
+              - Arn
+            Action: "SQS:SendMessage"
+            Condition:
+              ArnEquals:
+                "aws:SourceArn": !Ref tradeTopic
+      Queues:
+        - Ref: storeTradeQueue
+  # Create our queue policy for the 'syncAccountQueue'
+  snsToSyncAccountQueueSqsPolicy:
+    Type: AWS::SQS::QueuePolicy
+    Properties:
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: "allow-sns-messages"
+            Effect: Allow
+            Principal: "*"
+            Resource: !GetAtt
+              - syncAccountQueue
+              - Arn
+            Action: "SQS:SendMessage"
+            Condition:
+              ArnEquals:
+                "aws:SourceArn": !Ref tradeTopic
+      Queues:
+        - Ref: syncAccountQueue
+  # Create the subscription to the 'storeTradeQueue'
+  storeTradeQueueSubscription:
+    Type: 'AWS::SNS::Subscription'
+    Properties:
+      TopicArn: !Ref tradeTopic
+      Endpoint: !GetAtt
+        - storeTradeQueue
+        - Arn
+      Protocol: sqs
+      RawMessageDelivery: 'true'
+  # Create the subscription to the 'syncAccountQueue'
+  syncAccountQueueSubscription:
+    Type: 'AWS::SNS::Subscription'
+    Properties:
+      TopicArn: !Ref tradeTopic
+      Endpoint: !GetAtt
+        - syncAccountQueue
+        - Arn
+      Protocol: sqs
+      RawMessageDelivery: 'true'

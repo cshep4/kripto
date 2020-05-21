@@ -4,9 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/sqs"
+	"github.com/aws/aws-sdk-go/aws/request"
+	"github.com/aws/aws-sdk-go/service/sns"
 	"github.com/cshep4/kripto/services/trader/internal/trader"
 )
 
@@ -14,15 +14,14 @@ type (
 	Trader interface {
 		Trade(tradeType trader.TradeType, amount string) (*trader.TradeResponse, error)
 	}
-
-	SQS interface {
-		SendMessage(input *sqs.SendMessageInput) (*sqs.SendMessageOutput, error)
+	Publisher interface {
+		PublishWithContext(ctx context.Context, input *sns.PublishInput, opts ...request.Option) (*sns.PublishOutput, error)
 	}
 
 	service struct {
 		amount    string
-		queueUrl  string
-		sqsClient SQS
+		topic     string
+		publisher Publisher
 		trader    Trader
 	}
 
@@ -36,22 +35,22 @@ func (i InvalidParameterError) Error() string {
 	return fmt.Sprintf("invalid parameter %s", i.Parameter)
 }
 
-func New(amount, queueUrl string, sqsClient SQS, trader Trader) (*service, error) {
+func New(amount, topic string, publisher Publisher, trader Trader) (*service, error) {
 	switch {
 	case amount == "":
 		return nil, InvalidParameterError{Parameter: "amount"}
-	case queueUrl == "":
-		return nil, InvalidParameterError{Parameter: "queueUrl"}
-	case sqsClient == nil:
-		return nil, InvalidParameterError{Parameter: "sqsClient"}
+	case topic == "":
+		return nil, InvalidParameterError{Parameter: "topic"}
+	case publisher == nil:
+		return nil, InvalidParameterError{Parameter: "publisher"}
 	case trader == nil:
 		return nil, InvalidParameterError{Parameter: "trader"}
 	}
 
 	return &service{
 		amount:    amount,
-		queueUrl:  queueUrl,
-		sqsClient: sqsClient,
+		topic:     topic,
+		publisher: publisher,
 		trader:    trader,
 	}, nil
 }
@@ -67,9 +66,9 @@ func (s *service) Trade(ctx context.Context, tradeType string) error {
 		return fmt.Errorf("json_marshal: %w", err)
 	}
 
-	_, err = s.sqsClient.SendMessage(&sqs.SendMessageInput{
-		MessageBody: aws.String(string(b)),
-		QueueUrl:    aws.String(s.queueUrl),
+	_, err = s.publisher.PublishWithContext(ctx, &sns.PublishInput{
+		Message:  aws.String(string(b)),
+		TopicArn: aws.String(s.topic),
 	})
 	if err != nil {
 		return fmt.Errorf("send_message: %w", err)
