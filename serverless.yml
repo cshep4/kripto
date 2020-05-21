@@ -10,6 +10,11 @@ provider:
   region: eu-west-1
   logRetentionInDays: 14
   iamRoleStatements:
+    - Effect: 'Allow'
+      Action:
+        - "sns:Publish"
+      Resource:
+        - "arn:aws:sns:${self:provider.region}:${self:custom.secrets.awsAccountId}:Trade"
     - Effect: "Allow"
       Action:
         - "sqs:SendMessage"
