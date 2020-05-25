@@ -117,7 +117,7 @@ jobs:
           name: Build Functions
           command: |
             cd << parameters.service_path >>
-            make build
+            make -B build
 
       - persist_to_workspace:
           root: .
@@ -285,6 +285,38 @@ workflows:
           service_path: services/trader
           requires:
             - vendor
+  shared-java-idempotency:
+    jobs:
+      - checkout-code
+      - unit:
+          docker_image: cimg/openjdk:14.0
+          service_path: shared/java/idempotency
+          requires:
+            - vendor
+      - integration:
+          docker_image: cimg/openjdk:14.0
+          service_path: shared/java/idempotency
+          requires:
+            - vendor
+  account-retriever:
+    jobs:
+      - checkout-code
+      - build:
+          name: build-java-idempotency
+          docker_image: cimg/openjdk:14.0
+          service_path: shared/java/idempotency
+          requires:
+            - checkout-code
+      - unit:
+          docker_image: cimg/openjdk:14.0
+          service_path: services/account-retriever
+          requires:
+            - build-java-idempotency
+      - integration:
+          docker_image: cimg/openjdk:14.0
+          service_path: services/account-retriever
+          requires:
+            - build-java-idempotency
   deploy-functions:
     jobs:
       - checkout-code:
@@ -322,9 +354,29 @@ workflows:
             branches:
               only:
                 - master
+      - build:
+          name: build-java-idempotency
+          docker_image: cimg/openjdk:14.0
+          service_path: shared/java/idempotency
+          requires:
+            - build-trader
+          filters:
+            branches:
+              only:
+                - master
+      - build:
+          name: build-account-retriever
+          docker_image: cimg/openjdk:14.0
+          service_path: services/account-retriever
+          requires:
+            - build-java-idempotency
+          filters:
+            branches:
+              only:
+                - master
       - deploy:
           requires:
-            - build-rate-retriever
+            - build-account-retriever
           filters:
             branches:
               only:
