@@ -19,12 +19,9 @@ provider:
       Action:
         - "sqs:SendMessage"
         - "sqs:GetQueueUrl"
-      Resource: "arn:aws:sqs:${self:provider.region}:${self:custom.secrets.awsAccountId}:RateUpdate"
-    - Effect: "Allow"
-      Action:
-        - "sqs:SendMessage"
-        - "sqs:GetQueueUrl"
-      Resource: "arn:aws:sqs:${self:provider.region}:${self:custom.secrets.awsAccountId}:Trade"
+      Resource:
+        - "arn:aws:sqs:${self:provider.region}:${self:custom.secrets.awsAccountId}:RateUpdate"
+        - "arn:aws:sqs:${self:provider.region}:${self:custom.secrets.awsAccountId}:Trade"
     - Effect: "Allow"
       Action:
         - "sqs:ListQueues"
@@ -37,7 +34,7 @@ provider:
     TOKEN: ${self:custom.secrets.token}
     REGION: ${self:provider.region}
     AWS_ACCOUNT_ID: ${self:custom.secrets.awsAccountId}
-    LUMIGO_TOKEN: ${self:custom.secrets.lumigoToken}
+    LUMIGO_TRACER_TOKEN: ${self:custom.secrets.lumigoToken}
 
 resources:
   - ${file(serverless/resources.yml)}
@@ -60,16 +57,6 @@ functions:
   #          path: /data
   #          resp: http
   #          method: get
-  #          cors: true
-  #  write-data:
-  #    runtime: go1.x
-  #    memorySize: 128
-  #    handler: services/data-storer/bin/write
-  #    events:
-  #      - http:
-  #          path: /data
-  #          resp: http
-  #          method: post
   #          cors: true
   rate-writer:
     runtime: go1.x
@@ -115,7 +102,6 @@ functions:
     handler: services/trader/bin/trade
     environment:
       TOPIC: "arn:aws:sns:${self:provider.region}:${self:custom.secrets.awsAccountId}:Trade"
-      QUEUE_URL: "https://sqs.${self:provider.region}.amazonaws.com/${self:custom.secrets.awsAccountId}/Trade"
       COINBASE_PRO_KEY: ${self:custom.secrets.coinbaseProApiKey}
       COINBASE_PRO_PASSPHRASE: ${self:custom.secrets.coinbaseProPassphrase}
       COINBASE_PRO_SECRET: ${self:custom.secrets.coinbaseProSecretKey}

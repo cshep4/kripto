@@ -4,6 +4,10 @@
 
 Kripto ₿ trading platform, periodically checks the BTC-GBP exchange rate using Coinbase APIs and makes intelligent decisions whether to buy/sell Bitcoin. Executes trades using Coinbase Pro.
 
+## Architecture 🏛 
+
+<img src="docs/Kripto.png" data-canonical-src="screenshots/home.png" alt="Kripto" height="800"/>
+
 ## Functions λ
 
 | Function                                                | Service                                     | Runtime       | Events             | Description                                                                       |
