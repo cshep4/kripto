@@ -40,6 +40,7 @@ resources:
   - ${file(serverless/resources.yml)}
 
 package:
+  individually: true
   exclude:
     - /**
   include:
@@ -48,16 +49,12 @@ package:
     - services/rate-retriever/**
 
 functions:
-  #  read-data:
-  #    runtime: go1.x
-  #    memorySize: 128
-  #    handler: services/data-storer/bin/read
-  #    events:
-  #      - http:
-  #          path: /data
-  #          resp: http
-  #          method: get
-  #          cors: true
+  data-reader:
+    runtime: go1.x
+    memorySize: 128
+    handler: services/data-storer/bin/data-reader
+    environment:
+      MONGO_URI: ${self:custom.secrets.mongoUri}
   rate-writer:
     runtime: go1.x
     memorySize: 128
@@ -110,3 +107,11 @@ functions:
       COINBASE_PRO_SANDBOX_SECRET: ${self:custom.secrets.coinbaseProSandboxSecretKey}
       MOCK_TRADE: true
       TRADE_AMOUNT: 10.00
+  trade-decider:
+    runtime: python3.8
+    memorySize: 128
+    module: services/trade-decider
+    handler: app.handler
+
+plugins:
+  - serverless-python-requirements

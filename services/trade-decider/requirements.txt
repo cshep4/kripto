@@ -1,0 +1,6 @@
+botocore
+pandas
+boto3
+pytest
+pytest-mock
+lumigo_tracer

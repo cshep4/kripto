@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"net/http"
 	"time"
 
 	"github.com/aws/aws-lambda-go/events"
@@ -16,7 +15,7 @@ import (
 
 type (
 	Servicer interface {
-		Get(ctx context.Context) (*model.GetResponse, error)
+		Get(ctx context.Context) ([]model.Rate, error)
 		StoreTrade(ctx context.Context, trade model.Trade) error
 		StoreRate(ctx context.Context, rate float64, dateTime time.Time) error
 	}
@@ -36,14 +35,14 @@ func (i InvalidParameterError) Error() string {
 	return fmt.Sprintf("invalid parameter %s", i.Parameter)
 }
 
-func (h *Handler) Get(ctx context.Context, req events.APIGatewayProxyRequest) (*events.APIGatewayProxyResponse, error) {
-	return &events.APIGatewayProxyResponse{
-		StatusCode: http.StatusOK,
-		Headers: map[string]string{
-			"Content-Type":                "application/json",
-			"Access-Control-Allow-Origin": "*",
-		},
-	}, nil
+func (h *Handler) Get(ctx context.Context) ([]model.Rate, error) {
+	rates, err := h.Service.Get(ctx)
+	if err != nil {
+		log.Error(ctx, "error_getting_data", log.ErrorParam(err))
+		return nil, err
+	}
+
+	return rates, nil
 }
 
 func (h *Handler) StoreTrade(ctx context.Context, sqsEvent events.SQSEvent) error {
