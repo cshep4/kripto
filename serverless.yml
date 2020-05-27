@@ -2,12 +2,6 @@ service: kripto
 
 custom:
   secrets: ${file(secrets.json)}
-  pythonRequirements:
-    slim: true
-    useDownloadCache: true
-    useStaticCache: true
-    noDeploy: []
-    layer: true
 
 provider:
   name: aws
@@ -46,7 +40,6 @@ resources:
   - ${file(serverless/resources.yml)}
 
 package:
-  individually: true
   exclude:
     - /**
   include:
@@ -116,8 +109,4 @@ functions:
   trade-decider:
     runtime: python3.8
     memorySize: 128
-    module: services/trade-decider
-    handler: app.handler
-
-plugins:
-  - serverless-python-requirements
+    handler: services/trade-decider/app.handler

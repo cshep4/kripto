@@ -21,8 +21,6 @@
       "stage-3"
     ]
   },
-  "devDependencies": {
-    "serverless-python-requirements": "^5.1.0"
-  },
+  "devDependencies": {},
   "dependencies": {}
 }
