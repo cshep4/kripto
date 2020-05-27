@@ -2,6 +2,13 @@ service: kripto
 
 custom:
   secrets: ${file(secrets.json)}
+  pythonRequirements:
+    dockerizePip: non-linux
+    useDownloadCache: false
+    useStaticCache: false
+
+plugins:
+  - serverless-python-requirements
 
 provider:
   name: aws
@@ -40,6 +47,7 @@ resources:
   - ${file(serverless/resources.yml)}
 
 package:
+  individually: true
   exclude:
     - /**
   include:
@@ -109,4 +117,5 @@ functions:
   trade-decider:
     runtime: python3.8
     memorySize: 128
-    handler: services/trade-decider/app.handler
+    module: services/trade-decider
+    handler: app.handler
