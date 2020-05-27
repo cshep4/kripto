@@ -1,9 +1,9 @@
 import logging
-import os
+# import os
 import boto3
 import json
 
-from lumigo_tracer import lumigo_tracer
+# from lumigo_tracer import lumigo_tracer
 
 # Set up logging
 logger = logging.getLogger()
@@ -15,7 +15,7 @@ dynamo_client = boto3.client('dynamodb')
 lambda_client = boto3.client('lambda')
 
 
-@lumigo_tracer(token=os.environ['LUMIGO_TRACER_TOKEN'], enhance_print=True)
+# @lumigo_tracer(token=os.environ['LUMIGO_TRACER_TOKEN'], enhance_print=True)
 def handler(event, context):
     logger.debug('Received event: {}'.format(event))
 
