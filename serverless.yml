@@ -3,8 +3,11 @@ service: kripto
 custom:
   secrets: ${file(secrets.json)}
   pythonRequirements:
+    slim: true
     useDownloadCache: true
     useStaticCache: true
+    noDeploy: []
+    layer: true
 
 provider:
   name: aws
