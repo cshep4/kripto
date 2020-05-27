@@ -59,13 +59,15 @@ functions:
   data-reader:
     runtime: go1.x
     memorySize: 128
-    handler: services/data-storer/bin/data-reader
+    module: services/data-storer
+    handler: bin/data-reader
     environment:
       MONGO_URI: ${self:custom.secrets.mongoUri}
   rate-writer:
     runtime: go1.x
     memorySize: 128
-    handler: services/data-storer/bin/rate-writer
+    module: services/data-storer
+    handler: bin/rate-writer
     environment:
       MONGO_URI: ${self:custom.secrets.mongoUri}
     reservedConcurrency: 1
@@ -79,7 +81,8 @@ functions:
   trade-writer:
     runtime: go1.x
     memorySize: 128
-    handler: services/data-storer/bin/trade-writer
+    module: services/data-storer
+    handler: bin/trade-writer
     environment:
       MONGO_URI: ${self:custom.secrets.mongoUri}
     reservedConcurrency: 1
@@ -93,7 +96,8 @@ functions:
   rate-retriever:
     runtime: nodejs12.x
     memorySize: 128
-    handler: services/rate-retriever.handler
+    module: services/rate-retriever
+    handler: handler
     environment:
       QUEUE_URL: "https://sqs.${self:provider.region}.amazonaws.com/${self:custom.secrets.awsAccountId}/RateUpdate"
       COINBASE_API_KEY: ${self:custom.secrets.coinbaseApiKey}
@@ -103,7 +107,8 @@ functions:
   trade:
     runtime: go1.x
     memorySize: 128
-    handler: services/trader/bin/trade
+    module: services/trader
+    handler: bin/trade
     environment:
       TOPIC: "arn:aws:sns:${self:provider.region}:${self:custom.secrets.awsAccountId}:Trade"
       COINBASE_PRO_KEY: ${self:custom.secrets.coinbaseProApiKey}
