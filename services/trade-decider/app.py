@@ -20,7 +20,7 @@ def handler(event, context):
     logger.debug('Received event: {}'.format(event))
 
     resp = lambda_client.invoke(
-        FunctionName="data-reader",
+        FunctionName="kripto-prod-data-reader",
         InvocationType='RequestResponse',
         Payload="")
 
