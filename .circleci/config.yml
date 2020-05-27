@@ -126,6 +126,7 @@ jobs:
   deploy:
     docker:
       - image: circleci/node:8.10
+      - image: circleci/python:3.6.1
     steps:
       - attach_workspace:
           at: .
@@ -157,6 +158,12 @@ jobs:
             "${LUMIGO_TOKEN}" > secrets.json
 
       - run:
+          name: Install pip
+          command: |
+            sudo apt update
+            sudo apt install python-pip
+
+      - run:
           name: Install Serverless CLI, Configure Profile, Deploy
           command: |
             sudo npm i -g serverless
@@ -165,126 +172,126 @@ jobs:
             serverless deploy
 workflows:
   version: 2.1
-  shared-go-lambda:
-    jobs:
-      - checkout-code
-      - vendor:
-          docker_image: cimg/go:1.14
-          service_path: shared/go/lambda
-          dependency_file: go.sum
-          dependencies_location: /go/pkg/mod
-          requires:
-            - checkout-code
-      - unit:
-          docker_image: cimg/go:1.14
-          service_path: shared/go/lambda
-          requires:
-            - vendor
-      - integration:
-          docker_image: cimg/go:1.14
-          service_path: shared/go/lambda
-          requires:
-            - vendor
-  shared-go-log:
-    jobs:
-      - checkout-code
-      - vendor:
-          docker_image: cimg/go:1.14
-          service_path: shared/go/log
-          dependency_file: go.sum
-          dependencies_location: /go/pkg/mod
-          requires:
-            - checkout-code
-      - unit:
-          docker_image: cimg/go:1.14
-          service_path: shared/go/log
-          requires:
-            - vendor
-      - integration:
-          docker_image: cimg/go:1.14
-          service_path: shared/go/log
-          requires:
-            - vendor
-  shared-go-mongodb:
-    jobs:
-      - checkout-code
-      - vendor:
-          docker_image: cimg/go:1.14
-          service_path: shared/go/mongodb
-          dependency_file: go.sum
-          dependencies_location: /go/pkg/mod
-          requires:
-            - checkout-code
-      - unit:
-          docker_image: cimg/go:1.14
-          service_path: shared/go/mongodb
-          requires:
-            - vendor
-      - integration:
-          docker_image: cimg/go:1.14
-          service_path: shared/go/mongodb
-          requires:
-            - vendor
-  shared-go-idempotency:
-    jobs:
-      - checkout-code
-      - vendor:
-          docker_image: cimg/go:1.14
-          service_path: shared/go/idempotency
-          dependency_file: go.sum
-          dependencies_location: /go/pkg/mod
-          requires:
-            - checkout-code
-      - unit:
-          docker_image: cimg/go:1.14
-          service_path: shared/go/idempotency
-          requires:
-            - vendor
-      - integration:
-          docker_image: cimg/go:1.14
-          service_path: shared/go/idempotency
-          requires:
-            - vendor
-  data-storer:
-    jobs:
-      - checkout-code
-      - vendor:
-          docker_image: cimg/go:1.14
-          service_path: services/data-storer
-          dependency_file: go.sum
-          dependencies_location: /go/pkg/mod
-          requires:
-            - checkout-code
-      - unit:
-          docker_image: cimg/go:1.14
-          service_path: services/data-storer
-          requires:
-            - vendor
-      - integration:
-          docker_image: cimg/go:1.14
-          service_path: services/data-storer
-          requires:
-            - vendor
-  trader:
-    jobs:
-      - checkout-code
-      - vendor:
-          docker_image: cimg/go:1.14
-          service_path: services/trader
-          dependency_file: go.sum
-          dependencies_location: /go/pkg/mod
-          requires:
-            - checkout-code
-      - unit:
-          docker_image: cimg/go:1.14
-          service_path: services/trader
-          requires:
-            - vendor
-      - integration:
-          docker_image: cimg/go:1.14
-          service_path: services/trader
-          requires:
-            - vendor
+#  shared-go-lambda:
+#    jobs:
+#      - checkout-code
+#      - vendor:
+#          docker_image: cimg/go:1.14
+#          service_path: shared/go/lambda
+#          dependency_file: go.sum
+#          dependencies_location: /go/pkg/mod
+#          requires:
+#            - checkout-code
+#      - unit:
+#          docker_image: cimg/go:1.14
+#          service_path: shared/go/lambda
+#          requires:
+#            - vendor
+#      - integration:
+#          docker_image: cimg/go:1.14
+#          service_path: shared/go/lambda
+#          requires:
+#            - vendor
+#  shared-go-log:
+#    jobs:
+#      - checkout-code
+#      - vendor:
+#          docker_image: cimg/go:1.14
+#          service_path: shared/go/log
+#          dependency_file: go.sum
+#          dependencies_location: /go/pkg/mod
+#          requires:
+#            - checkout-code
+#      - unit:
+#          docker_image: cimg/go:1.14
+#          service_path: shared/go/log
+#          requires:
+#            - vendor
+#      - integration:
+#          docker_image: cimg/go:1.14
+#          service_path: shared/go/log
+#          requires:
+#            - vendor
+#  shared-go-mongodb:
+#    jobs:
+#      - checkout-code
+#      - vendor:
+#          docker_image: cimg/go:1.14
+#          service_path: shared/go/mongodb
+#          dependency_file: go.sum
+#          dependencies_location: /go/pkg/mod
+#          requires:
+#            - checkout-code
+#      - unit:
+#          docker_image: cimg/go:1.14
+#          service_path: shared/go/mongodb
+#          requires:
+#            - vendor
+#      - integration:
+#          docker_image: cimg/go:1.14
+#          service_path: shared/go/mongodb
+#          requires:
+#            - vendor
+#  shared-go-idempotency:
+#    jobs:
+#      - checkout-code
+#      - vendor:
+#          docker_image: cimg/go:1.14
+#          service_path: shared/go/idempotency
+#          dependency_file: go.sum
+#          dependencies_location: /go/pkg/mod
+#          requires:
+#            - checkout-code
+#      - unit:
+#          docker_image: cimg/go:1.14
+#          service_path: shared/go/idempotency
+#          requires:
+#            - vendor
+#      - integration:
+#          docker_image: cimg/go:1.14
+#          service_path: shared/go/idempotency
+#          requires:
+#            - vendor
+#  data-storer:
+#    jobs:
+#      - checkout-code
+#      - vendor:
+#          docker_image: cimg/go:1.14
+#          service_path: services/data-storer
+#          dependency_file: go.sum
+#          dependencies_location: /go/pkg/mod
+#          requires:
+#            - checkout-code
+#      - unit:
+#          docker_image: cimg/go:1.14
+#          service_path: services/data-storer
+#          requires:
+#            - vendor
+#      - integration:
+#          docker_image: cimg/go:1.14
+#          service_path: services/data-storer
+#          requires:
+#            - vendor
+#  trader:
+#    jobs:
+#      - checkout-code
+#      - vendor:
+#          docker_image: cimg/go:1.14
+#          service_path: services/trader
+#          dependency_file: go.sum
+#          dependencies_location: /go/pkg/mod
+#          requires:
+#            - checkout-code
+#      - unit:
+#          docker_image: cimg/go:1.14
+#          service_path: services/trader
+#          requires:
+#            - vendor
+#      - integration:
+#          docker_image: cimg/go:1.14
+#          service_path: services/trader
+#          requires:
+#            - vendor
   deploy-functions:
     jobs:
       - checkout-code:
