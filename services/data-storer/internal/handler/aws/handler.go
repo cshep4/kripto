@@ -128,7 +128,7 @@ func (h *Handler) StoreRate(ctx context.Context, sqsEvent events.SQSEvent) error
 			continue
 		}
 
-		err = h.Service.StoreRate(ctx, req.Rate, req.DateTime)
+		err = h.Service.StoreRate(ctx, req.Rate, req.DateTime.Time)
 		if err != nil {
 			log.Error(ctx, "error_storing_rate",
 				log.SafeParam("rate", req.Rate),

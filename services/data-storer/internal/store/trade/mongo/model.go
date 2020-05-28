@@ -35,7 +35,7 @@ func fromTrade(t model.Trade) (trade, error) {
 		TradeType:  string(t.TradeType),
 		ProductId:  t.ProductId,
 		Settled:    t.Settled,
-		CreatedAt:  t.CreatedAt,
+		CreatedAt:  t.CreatedAt.Time,
 		SpentFunds: t.SpentFunds,
 		Fees:       t.Fees,
 		Value: value{
@@ -51,7 +51,7 @@ func toTrade(t trade) model.Trade {
 		TradeType:  model.TradeType(t.TradeType),
 		ProductId:  t.ProductId,
 		Settled:    t.Settled,
-		CreatedAt:  t.CreatedAt,
+		CreatedAt:  model.Time{Time: t.CreatedAt},
 		SpentFunds: t.SpentFunds,
 		Fees:       t.Fees,
 		Value: model.Value{
