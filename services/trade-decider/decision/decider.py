@@ -1,5 +1,5 @@
 import logging
-from random import random
+import random
 
 from model.rate import Rate
 

@@ -119,3 +119,6 @@ functions:
     memorySize: 128
     module: services/trade-decider
     handler: app.handler
+    environment:
+      READER_FUNCTION_NAME: "${self:provider.profile}-${self:provider.stage}-data-reader"
+      TRADER_FUNCTION_NAME: "${self:provider.profile}-${self:provider.stage}-trader"
