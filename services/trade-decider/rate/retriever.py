@@ -3,6 +3,7 @@ import json
 import os
 
 from model.rate import Rate
+from datetime import datetime
 
 
 class Retriever:
@@ -19,4 +20,13 @@ class Retriever:
         d = json.loads(resp['Payload'].read())
         self.logger.info('{}'.format(d))
 
-        return d
+        rates: [Rate] = []
+
+        for r in d:
+            rate = Rate()
+            rate.id = r['id']
+            rate.rate = r['rate']
+            rate.date_time = datetime.strptime(r['dateTime'], '%Y-%m-%dT%H:%M:%S.%fZ')
+            rates.append(rate)
+
+        return rates
