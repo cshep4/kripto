@@ -3,7 +3,6 @@ import json
 import os
 
 from model.rate import Rate
-from datetime import datetime
 
 
 class Retriever:
@@ -26,7 +25,7 @@ class Retriever:
             rate = Rate()
             rate.id = r['id']
             rate.rate = r['rate']
-            rate.date_time = datetime.strptime(r['dateTime'], '%Y-%m-%dT%H:%M:%S.%fZ')
+            rate.date_time = r['dateTime']  # datetime.strptime(r['dateTime'], '%Y-%m-%dT%H:%M:%S.%fZ')
             rates.append(rate)
 
         return rates

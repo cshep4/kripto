@@ -131,7 +131,7 @@ func TestTradeRequest_ToTrade(t *testing.T) {
 			Side:          "buy",
 			ProductId:     "productId",
 			Settled:       true,
-			CreatedAt:     model.Time{Time: now},
+			CreatedAt:     now,
 			Funds:         "1",
 			FillFees:      "2",
 			FilledSize:    "3",
@@ -145,7 +145,7 @@ func TestTradeRequest_ToTrade(t *testing.T) {
 		assert.Equal(t, req.Side, trade.TradeType)
 		assert.Equal(t, req.ProductId, trade.ProductId)
 		assert.Equal(t, req.Settled, trade.Settled)
-		assert.Equal(t, now, trade.CreatedAt.Time)
+		assert.Equal(t, now, trade.CreatedAt)
 		assert.Equal(t, float64(1), trade.SpentFunds)
 		assert.Equal(t, float64(2), trade.Fees)
 		assert.Equal(t, float64(3), trade.Value.BTC)

@@ -28,7 +28,7 @@ func fromRate(r model.Rate) (*rate, error) {
 	return &rate{
 		Id:       id,
 		Rate:     r.Rate,
-		DateTime: r.DateTime.Time,
+		DateTime: r.DateTime,
 	}, nil
 }
 
@@ -36,6 +36,6 @@ func toRate(r rate) model.Rate {
 	return model.Rate{
 		Id:       r.Id.Hex(),
 		Rate:     r.Rate,
-		DateTime: model.Time{Time: r.DateTime},
+		DateTime: r.DateTime,
 	}
 }

@@ -1,7 +1,4 @@
-import datetime
-
-
 class Rate:
     id: str
     rate: float
-    date_time: datetime.datetime
+    date_time: str

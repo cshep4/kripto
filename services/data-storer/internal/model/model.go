@@ -23,15 +23,15 @@ type (
 	}
 
 	StoreRateRequest struct {
-		IdempotencyKey string  `json:"idempotencyKey"`
-		Rate           float64 `json:"rate"`
-		DateTime       Time    `json:"dateTime"`
+		IdempotencyKey string    `json:"idempotencyKey"`
+		Rate           float64   `json:"rate"`
+		DateTime       time.Time `json:"dateTime"`
 	}
 
 	Rate struct {
-		Id       string  `json:"id"`
-		Rate     float64 `json:"rate"`
-		DateTime Time    `json:"dateTime"`
+		Id       string    `json:"id"`
+		Rate     float64   `json:"rate"`
+		DateTime time.Time `json:"dateTime"`
 	}
 
 	Trade struct {
@@ -39,7 +39,7 @@ type (
 		TradeType  TradeType `json:"tradeType"`
 		ProductId  string    `json:"productId"`
 		Settled    bool      `json:"settled"`
-		CreatedAt  Time      `json:"createdAt,string,omitempty"`
+		CreatedAt  time.Time `json:"createdAt,string,omitempty"`
 		SpentFunds float64   `json:"funds,omitempty"`
 		Fees       float64   `json:"fillFees,omitempty"`
 		Value      Value     `json:"value"`
@@ -57,7 +57,7 @@ type (
 		Side          TradeType `json:"side"`
 		ProductId     string    `json:"productId"`
 		Settled       bool      `json:"settled"`
-		CreatedAt     Time      `json:"createdAt"`
+		CreatedAt     time.Time `json:"createdAt"`
 		Funds         string    `json:"funds"`         // Spent Funds in GBP.
 		FillFees      string    `json:"fillFees"`      // Fees in GBP.
 		FilledSize    string    `json:"filledSize"`    // Value in BTC.
@@ -67,10 +67,6 @@ type (
 	InvalidPropertyError struct {
 		Parameter string
 		Err       string
-	}
-
-	Time struct {
-		time.Time
 	}
 )
 
@@ -118,22 +114,4 @@ func (t *TradeRequest) ToTrade() (Trade, error) {
 			BTC: btc,
 		},
 	}, nil
-}
-
-func (t Time) MarshalJSON() ([]byte, error) {
-	time := t.Time.Format("2006-01-02T15:04:05Z")
-	return []byte(time), nil
-}
-
-func (t *Time) UnmarshalJSON(b []byte) (err error) {
-	s := strings.Trim(string(b), "\"")
-	t.Time, err = time.Parse("2006-01-02T15:04:05Z", s)
-	if err != nil {
-		t.Time, err = time.Parse("2006-01-02T15:04Z", s)
-		if err != nil {
-			return err
-		}
-	}
-
-	return
 }
