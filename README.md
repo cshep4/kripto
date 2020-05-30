@@ -1,4 +1,6 @@
-# kripto ₿ 💰 💸 🤑 🏴󠁧󠁢󠁷󠁬󠁳󠁿 <br /> [![CircleCI](https://circleci.com/gh/cshep4/kripto.svg?circle-token=86c9f9b058b912c8b87271abf4f054c5ce9451a5)](https://circleci.com/gh/cshep4/kripto)
+# kripto ₿ 💰 💸 🤑 🏴󠁧󠁢󠁷󠁬󠁳󠁿
+
+[![CircleCI](https://circleci.com/gh/cshep4/kripto.svg?circle-token=86c9f9b058b912c8b87271abf4f054c5ce9451a5)](https://circleci.com/gh/cshep4/kripto)
 
 Kripto ₿ trading platform, periodically checks the BTC-GBP exchange rate using Coinbase APIs and makes intelligent decisions whether to buy/sell Bitcoin. Executes trades using Coinbase Pro.
 
