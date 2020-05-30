@@ -126,6 +126,7 @@ jobs:
   deploy:
     docker:
       - image: circleci/node:8.10
+      - image: circleci/python:3.6.1
     steps:
       - attach_workspace:
           at: .
@@ -155,6 +156,12 @@ jobs:
             "${COINBASE_PRO_SANDBOX_KEY}" "${COINBASE_PRO_SANDBOX_PASSPHRASE}" "${COINBASE_PRO_SANDBOX_SECRET}" \
             "${AWS_ACCOUNT_ID}" \
             "${LUMIGO_TOKEN}" > secrets.json
+
+      - run:
+          name: Install pip
+          command: |
+            sudo apt update
+            sudo apt install python-pip
 
       - run:
           name: Install Serverless CLI, Configure Profile, Deploy
@@ -324,6 +331,16 @@ workflows:
             branches:
               only:
                 - master
+#      - build:
+#          name: build-trade-decider
+#          docker_image: circleci/python:3.6.1
+#          service_path: services/trade-decider
+#          requires:
+#            - checkout-code
+#          filters:
+#            branches:
+#              only:
+#                - master
       - build:
           name: build-data-storer
           docker_image: cimg/go:1.14

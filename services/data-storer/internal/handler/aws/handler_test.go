@@ -317,7 +317,7 @@ func TestHandler_StoreRate(t *testing.T) {
 			}
 			ctx            = log.WithServiceName(context.Background(), log.New("debug"), "test")
 			idempotencyKey = "idempotency key"
-			now            = time.Now().UTC().Format(time.RFC3339)
+			now            = time.Now().UTC().Format("2006-01-02T15:04:05Z")
 			event          = events.SQSEvent{
 				Records: []events.SQSMessage{{
 					Body: fmt.Sprintf(`{
@@ -350,7 +350,7 @@ func TestHandler_StoreRate(t *testing.T) {
 			}
 			ctx            = log.WithServiceName(context.Background(), log.New("debug"), "test")
 			idempotencyKey = "idempotency key"
-			now            = time.Now().UTC().Format(time.RFC3339)
+			now            = time.Now().UTC().Format("2006-01-02T15:04:05Z")
 			event          = events.SQSEvent{
 				Records: []events.SQSMessage{{
 					Body: fmt.Sprintf(`{
@@ -390,7 +390,7 @@ func TestHandler_StoreRate(t *testing.T) {
 						"idempotencyKey": "%s",
 						"rate": %v,
 						"dateTime": "%s"
-					}`, idempotencyKey, rate, now.Format(time.RFC3339)),
+					}`, idempotencyKey, rate, now.Format("2006-01-02T15:04:05Z")),
 				}},
 			}
 			testErr = errors.New("error")
@@ -426,7 +426,7 @@ func TestHandler_StoreRate(t *testing.T) {
 						"idempotencyKey": "%s",
 						"rate": %v,
 						"dateTime": "%s"
-					}`, idempotencyKey, rate, now.Format(time.RFC3339)),
+					}`, idempotencyKey, rate, now.Format("2006-01-02T15:04:05Z")),
 				}},
 			}
 		)

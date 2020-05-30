@@ -54,7 +54,7 @@ provider:
     TOKEN: ${self:custom.secrets.token}
     REGION: ${self:provider.region}
     AWS_ACCOUNT_ID: ${self:custom.secrets.awsAccountId}
-    LUMIGO_TOKEN: ${self:custom.secrets.lumigoToken}
+    LUMIGO_TRACER_TOKEN: ${self:custom.secrets.lumigoToken}
 
 package:
   exclude:

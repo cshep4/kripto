@@ -1,6 +1,16 @@
+const pino = require('pino');
+const logger = pino({
+    name: 'rate-retriever',
+    messageKey: 'message',
+    changeLevelName: 'severity',
+    useLevelLabels: true
+});
+
+logger.info("initialisation");
+
 const AWS = require('aws-sdk');
 const sqs = new AWS.SQS({
-    region: 'us-east-1'
+    region: process.env.REGION
 });
 
 const Client = require('coinbase').Client;
@@ -12,14 +22,14 @@ const coinbaseClient = new Client({
 
 const {v4: uuidv4} = require('uuid');
 
-const lumigo = require('@lumigo/tracer')({token: process.env.LUMIGO_TOKEN});
+const lumigo = require('@lumigo/tracer')({token: process.env.LUMIGO_TRACER_TOKEN});
 
 exports.handler = lumigo.trace((event, context, callback) => {
     const queueUrl = process.env.QUEUE_URL;
 
     coinbaseClient.getBuyPrice({'currencyPair': 'BTC-GBP'}, function (err, price) {
         if (err) {
-            console.log('error:', "failed to get rate" + err);
+            logger.error({"msg": "failed to send message", "currencyPair": "BTC-GBP", "err": err});
             callback(err);
             return;
         }
@@ -35,12 +45,9 @@ exports.handler = lumigo.trace((event, context, callback) => {
 
         sqs.sendMessage(params, function (err, data) {
             if (err) {
-                console.log('error:', "failed to send message" + err);
+                logger.error({"msg": "failed to send message", "body": params.MessageBody, "err": err});
                 callback(err);
-                return;
             }
-
-            console.log('data:', data.MessageId);
         });
     });
 });

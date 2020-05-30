@@ -2,6 +2,7 @@
 default: build
 
 build:
+	GOOS=linux go build -o bin/data-reader ./cmd/data-reader
 	GOOS=linux go build -o bin/rate-writer ./cmd/rate-writer
 	GOOS=linux go build -o bin/trade-writer ./cmd/trade-writer
 

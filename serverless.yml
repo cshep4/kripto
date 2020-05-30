@@ -2,6 +2,13 @@ service: kripto
 
 custom:
   secrets: ${file(secrets.json)}
+  pythonRequirements:
+    dockerizePip: non-linux
+    useDownloadCache: false
+    useStaticCache: false
+
+plugins:
+  - serverless-python-requirements
 
 provider:
   name: aws
@@ -19,12 +26,9 @@ provider:
       Action:
         - "sqs:SendMessage"
         - "sqs:GetQueueUrl"
-      Resource: "arn:aws:sqs:${self:provider.region}:${self:custom.secrets.awsAccountId}:RateUpdate"
-    - Effect: "Allow"
-      Action:
-        - "sqs:SendMessage"
-        - "sqs:GetQueueUrl"
-      Resource: "arn:aws:sqs:${self:provider.region}:${self:custom.secrets.awsAccountId}:Trade"
+      Resource:
+        - "arn:aws:sqs:${self:provider.region}:${self:custom.secrets.awsAccountId}:RateUpdate"
+        - "arn:aws:sqs:${self:provider.region}:${self:custom.secrets.awsAccountId}:Trade"
     - Effect: "Allow"
       Action:
         - "sqs:ListQueues"
@@ -37,40 +41,26 @@ provider:
     TOKEN: ${self:custom.secrets.token}
     REGION: ${self:provider.region}
     AWS_ACCOUNT_ID: ${self:custom.secrets.awsAccountId}
-    LUMIGO_TOKEN: ${self:custom.secrets.lumigoToken}
+    LUMIGO_TRACER_TOKEN: ${self:custom.secrets.lumigoToken}
 
 resources:
   - ${file(serverless/resources.yml)}
 
 package:
+  individually: true
   exclude:
     - /**
-  include:
-    - services/data-storer/bin/**
-    - services/trader/bin/**
-    - services/rate-retriever/**
 
 functions:
-  #  read-data:
-  #    runtime: go1.x
-  #    memorySize: 128
-  #    handler: services/data-storer/bin/read
-  #    events:
-  #      - http:
-  #          path: /data
-  #          resp: http
-  #          method: get
-  #          cors: true
-  #  write-data:
-  #    runtime: go1.x
-  #    memorySize: 128
-  #    handler: services/data-storer/bin/write
-  #    events:
-  #      - http:
-  #          path: /data
-  #          resp: http
-  #          method: post
-  #          cors: true
+  data-reader:
+    runtime: go1.x
+    memorySize: 128
+    handler: services/data-storer/bin/data-reader
+    package:
+      include:
+        - services/data-storer/bin/data-reader
+    environment:
+      MONGO_URI: ${self:custom.secrets.mongoUri}
   rate-writer:
     runtime: go1.x
     memorySize: 128
@@ -83,12 +73,15 @@ functions:
           batchSize: 1
           arn:
             Fn::GetAtt:
-              - RateUpdate
+              - storeRateQueue
               - Arn
   trade-writer:
     runtime: go1.x
     memorySize: 128
     handler: services/data-storer/bin/trade-writer
+    package:
+      include:
+        - services/data-storer/bin/trade-writer
     environment:
       MONGO_URI: ${self:custom.secrets.mongoUri}
     reservedConcurrency: 1
@@ -103,6 +96,9 @@ functions:
     runtime: nodejs12.x
     memorySize: 128
     handler: services/rate-retriever.handler
+    package:
+      include:
+        - services/rate-retriever
     environment:
       QUEUE_URL: "https://sqs.${self:provider.region}.amazonaws.com/${self:custom.secrets.awsAccountId}/RateUpdate"
       COINBASE_API_KEY: ${self:custom.secrets.coinbaseApiKey}
@@ -113,9 +109,11 @@ functions:
     runtime: go1.x
     memorySize: 128
     handler: services/trader/bin/trade
+    package:
+      include:
+        - services/trader/bin/trade
     environment:
       TOPIC: "arn:aws:sns:${self:provider.region}:${self:custom.secrets.awsAccountId}:Trade"
-      QUEUE_URL: "https://sqs.${self:provider.region}.amazonaws.com/${self:custom.secrets.awsAccountId}/Trade"
       COINBASE_PRO_KEY: ${self:custom.secrets.coinbaseProApiKey}
       COINBASE_PRO_PASSPHRASE: ${self:custom.secrets.coinbaseProPassphrase}
       COINBASE_PRO_SECRET: ${self:custom.secrets.coinbaseProSecretKey}
@@ -124,3 +122,22 @@ functions:
       COINBASE_PRO_SANDBOX_SECRET: ${self:custom.secrets.coinbaseProSandboxSecretKey}
       MOCK_TRADE: true
       TRADE_AMOUNT: 10.00
+  trade-decider:
+    runtime: python3.8
+    memorySize: 128
+    timeout: 120
+    module: services/trade-decider
+    handler: app.handler
+    package:
+      include:
+        - services/trade-decider
+    environment:
+      READER_FUNCTION_NAME: "${self:provider.profile}-${self:provider.stage}-data-reader"
+      TRADER_FUNCTION_NAME: "${self:provider.profile}-${self:provider.stage}-trade"
+    events:
+      - sqs:
+          batchSize: 1
+          arn:
+            Fn::GetAtt:
+              - initiateTradeQueue
+              - Arn

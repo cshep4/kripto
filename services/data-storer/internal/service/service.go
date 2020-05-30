@@ -48,8 +48,13 @@ func New(rateStore RateStore, tradeStore TradeStore) (*service, error) {
 	}, nil
 }
 
-func (s *service) Get(ctx context.Context) (*model.GetResponse, error) {
-	panic("implement me")
+func (s *service) Get(ctx context.Context) ([]model.Rate, error) {
+	rates, err := s.rateStore.GetPreviousWeeks(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("get_rates: %w", err)
+	}
+
+	return rates, nil
 }
 
 func (s *service) StoreRate(ctx context.Context, rate float64, dateTime time.Time) error {
