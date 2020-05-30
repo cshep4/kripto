@@ -1,6 +1,4 @@
-# kripto ₿ 💰 💸 🤑 🏴󠁧󠁢󠁷󠁬󠁳󠁿
-
-[![CircleCI](https://circleci.com/gh/cshep4/kripto.svg?circle-token=86c9f9b058b912c8b87271abf4f054c5ce9451a5)](https://circleci.com/gh/cshep4/kripto)
+# kripto ₿ 💰 💸 🤑 🏴󠁧󠁢󠁷󠁬󠁳󠁿 <br /> [![CircleCI](https://circleci.com/gh/cshep4/kripto.svg?circle-token=86c9f9b058b912c8b87271abf4f054c5ce9451a5)](https://circleci.com/gh/cshep4/kripto)
 
 Kripto ₿ trading platform, periodically checks the BTC-GBP exchange rate using Coinbase APIs and makes intelligent decisions whether to buy/sell Bitcoin. Executes trades using Coinbase Pro.
 
@@ -19,7 +17,7 @@ Kripto ₿ trading platform, periodically checks the BTC-GBP exchange rate using
 | [data-reader](./services/data-storer/cmd/data-reader)   | [data-storer](./services/data-storer)       | Go            | Invocation         | Gets the previous week's rates from the database and returns in the response.          |
 | [trade-decider](./services/trade-decider)               | [trade-decider](./services/trade-decider)   | Python        | SQS                | Makes an intelligent decision whether or not to trade BTC-GBP based on historic rates. |
 
-### Rate Retriever 💲
+### Rate Retriever ₿↔￡
 
 - **Language** - JavaScript
 - **Runtime** - nodejs12.x
@@ -90,7 +88,7 @@ Kripto ₿ trading platform, periodically checks the BTC-GBP exchange rate using
 ##### Response 
     {}
     
-### Data Reader ₿
+### Data Reader 💷
 
 - **Language** - Go
 - **Runtime** - go1.x
@@ -133,12 +131,11 @@ Kripto ₿ trading platform, periodically checks the BTC-GBP exchange rate using
 
 ### Trade
 
-- **Description** - Signifies a trade event has taken place
+- **Description** - Signifies a trade has taken place
 - **SQS Queues**
     - `StoreTrade`
-- **Producers**
-    - trader
-- **Consumers**
+- **Publisher** - trader
+- **Subscribers**
     - trade-writer
 
 ##### Payload
@@ -160,9 +157,8 @@ Kripto ₿ trading platform, periodically checks the BTC-GBP exchange rate using
 - **SQS Queues**
     - `StoreRate`
     - `InitiateTrade`
-- **Producers**
-    - rate-retriever
-- **Consumers**
+- **Publisher** - rate-retriever
+- **Subscribers**
     - rate-writer
     - trade-decider
 
