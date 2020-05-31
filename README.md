@@ -10,14 +10,15 @@ Kripto ₿ trading platform, periodically checks the BTC-GBP exchange rate using
 
 ## Functions λ
 
-| Function                                                | Service                                     | Runtime       | Events             | Description                                                                            |
-| ------------------------------------------------------- | ------------------------------------------- | ------------- | ------------------ | -------------------------------------------------------------------------------------- |
-| [rate-retriever](./services/rate-retriever)             | [rate-retriever](./services/rate-retriever) | Node.js       | Schedule           | Retrieves the BTC-GBP exchange rate from Coinbase and publishes result to SNS.         |
-| [trade](./services/trader/cmd/trade)                    | [trader](./services/trader)                 | Go            | Invocation         | Calls Coinbase Pro to make a BTC-GBP trade and publishes result to SNS.                |
-| [rate-writer](./services/data-storer/cmd/rate-writer)   | [data-storer](./services/data-storer)       | Go            | SQS                | Stores a trade in the database.                                                        |
-| [trade-writer](./services/data-storer/cmd/trade-writer) | [data-storer](./services/data-storer)       | Go            | SQS                | Stores a rate in the database.                                                         |
-| [data-reader](./services/data-storer/cmd/data-reader)   | [data-storer](./services/data-storer)       | Go            | Invocation         | Gets the previous week's rates from the database and returns in the response.          |
-| [trade-decider](./services/trade-decider)               | [trade-decider](./services/trade-decider)   | Python        | SQS                | Makes an intelligent decision whether or not to trade BTC-GBP based on historic rates. |
+| Function                                                | Service                                       | Runtime       | Events             | Description                                                                            |
+| ------------------------------------------------------- | --------------------------------------------- | ------------- | ------------------ | -------------------------------------------------------------------------------------- |
+| [rate-retriever](./services/rate-retriever)             | [rate-retriever](./services/rate-retriever)   | Node.js       | Schedule           | Retrieves the BTC-GBP exchange rate from Coinbase and publishes result to SNS.         |
+| [trade](./services/trader/cmd/trade)                    | [trader](./services/trader)                   | Go            | Invocation         | Calls Coinbase Pro to make a BTC-GBP trade and publishes result to SNS.                |
+| [rate-writer](./services/data-storer/cmd/rate-writer)   | [data-storer](./services/data-storer)         | Go            | SQS                | Stores a trade in the database.                                                        |
+| [trade-writer](./services/data-storer/cmd/trade-writer) | [data-storer](./services/data-storer)         | Go            | SQS                | Stores a rate in the database.                                                         |
+| [data-reader](./services/data-storer/cmd/data-reader)   | [data-storer](./services/data-storer)         | Go            | Invocation         | Gets the previous week's rates from the database and returns in the response.          |
+| [trade-decider](./services/trade-decider)               | [trade-decider](./services/trade-decider)     | Python        | SQS                | Makes an intelligent decision whether or not to trade BTC-GBP based on historic rates. |
+| [receipt-emailer](./services/receipt-emailer)           | [receipt-emailer](./services/receipt-emailer) | Java          | SQS                | Sends an email receipt containing all the details of the trade.                        |
 
 ### Rate Retriever ₿↔￡
 
@@ -129,6 +130,30 @@ Kripto ₿ trading platform, periodically checks the BTC-GBP exchange rate using
 ##### Response 
     {}
     
+### Receipt Emailer ✉️
+
+- **Language** - Kotlin
+- **Runtime** - java11
+- **Event** - SQS - `EmailReceipt` queue
+- **Services** - AWS Lambda, Serverless, SQS (Consumer)
+- **Idempotency** - trade ID (`id`) in message payload used as idempotency key
+
+##### Request
+    {
+        "id": "aa368788-bb4f-40c0-b80f-afcfdaf18574",
+        "side": "buy",
+        "productId": "BTC-GBP",
+        "funds": "9.95024875",
+        "settled": true,
+        "createdAt": "2020-05-19T19:39:00",
+        "fillFees": "0.049751102976",
+        "filledSize": "0.00125952",
+        "executedValue": "9.9502205952"
+    }
+
+##### Response 
+    {}
+    
 ## Events 🚀
 
 ### Trade
@@ -136,9 +161,11 @@ Kripto ₿ trading platform, periodically checks the BTC-GBP exchange rate using
 - **Description** - Signifies a trade has taken place
 - **SQS Queues**
     - `StoreTrade`
+    - `EmailReceipt`
 - **Publisher** - trader
 - **Subscribers**
     - trade-writer
+    - receipt-emailer
 
 ##### Payload
     {
