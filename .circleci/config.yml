@@ -305,7 +305,7 @@ workflows:
           service_path: shared/java/idempotency
           requires:
             - checkout-code
-  account-retriever:
+  receipt-emailer:
     jobs:
       - checkout-code
       - build:
@@ -316,12 +316,12 @@ workflows:
             - checkout-code
       - unit:
           docker_image: cimg/openjdk:11.0
-          service_path: services/account-retriever
+          service_path: services/receipt-emailer
           requires:
             - build-java-idempotency
       - integration:
           docker_image: cimg/openjdk:11.0
-          service_path: services/account-retriever
+          service_path: services/receipt-emailer
           requires:
             - build-java-idempotency
   deploy-functions:
@@ -372,9 +372,9 @@ workflows:
               only:
                 - master
       - build:
-          name: build-account-retriever
+          name: build-receipt-emailer
           docker_image: cimg/openjdk:11.0
-          service_path: services/account-retriever
+          service_path: services/receipt-emailer
           requires:
             - build-java-idempotency
           filters:
@@ -383,7 +383,7 @@ workflows:
                 - master
       - deploy:
           requires:
-            - build-account-retriever
+            - build-receipt-emailer
           filters:
             branches:
               only:
