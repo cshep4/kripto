@@ -9,7 +9,7 @@ import (
 
 type (
 	Servicer interface {
-		Trade(ctx context.Context, tradeType string) error
+		Trade(ctx context.Context, tradeType, amount string) error
 	}
 
 	Handler struct {
@@ -23,6 +23,7 @@ type (
 
 	TradeRequest struct {
 		TradeType string `json:"tradeType"`
+		Amount    string `json:"amount"`
 	}
 )
 
@@ -31,7 +32,7 @@ func (i InvalidParameterError) Error() string {
 }
 
 func (h *Handler) Trade(ctx context.Context, req TradeRequest) error {
-	err := h.Service.Trade(ctx, req.TradeType)
+	err := h.Service.Trade(ctx, req.TradeType, req.Amount)
 	if err != nil {
 		log.Error(ctx, "error_trading", log.ErrorParam(err))
 		return fmt.Errorf("trade: %w", err)
