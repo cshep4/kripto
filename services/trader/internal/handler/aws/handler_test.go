@@ -21,15 +21,19 @@ func TestHandler_Trade(t *testing.T) {
 			ctx     = context.Background()
 			testErr = errors.New("error")
 		)
-		const tradeType = "buy"
+		const (
+			tradeType = "buy"
+			amount    = "amount"
+		)
 
 		service := service_mocks.NewMockServicer(ctrl)
 		handler := aws.Handler{Service: service}
 
-		service.EXPECT().Trade(ctx, tradeType).Return(testErr)
+		service.EXPECT().Trade(ctx, tradeType, amount).Return(testErr)
 
 		err := handler.Trade(ctx, aws.TradeRequest{
 			TradeType: tradeType,
+			Amount:    amount,
 		})
 		require.Error(t, err)
 
@@ -41,15 +45,19 @@ func TestHandler_Trade(t *testing.T) {
 		defer ctrl.Finish()
 
 		ctx := context.Background()
-		const tradeType = "buy"
+		const (
+			tradeType = "buy"
+			amount    = "amount"
+		)
 
 		service := service_mocks.NewMockServicer(ctrl)
 		handler := aws.Handler{Service: service}
 
-		service.EXPECT().Trade(ctx, tradeType).Return(nil)
+		service.EXPECT().Trade(ctx, tradeType, amount).Return(nil)
 
 		err := handler.Trade(ctx, aws.TradeRequest{
 			TradeType: tradeType,
+			Amount:    amount,
 		})
 		require.NoError(t, err)
 	})

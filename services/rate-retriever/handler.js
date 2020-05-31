@@ -9,7 +9,10 @@ const logger = pino({
 logger.info("initialisation");
 
 const AWS = require('aws-sdk');
-const sqs = new AWS.SQS({
+// const sqs = new AWS.SQS({
+//     region: process.env.REGION
+// });
+const sns = new AWS.SNS({
     region: process.env.REGION
 });
 
@@ -25,7 +28,8 @@ const {v4: uuidv4} = require('uuid');
 const lumigo = require('@lumigo/tracer')({token: process.env.LUMIGO_TRACER_TOKEN});
 
 exports.handler = lumigo.trace((event, context, callback) => {
-    const queueUrl = process.env.QUEUE_URL;
+    // const queueUrl = process.env.QUEUE_URL;
+    const topic = process.env.TOPIC;
 
     coinbaseClient.getBuyPrice({'currencyPair': 'BTC-GBP'}, function (err, price) {
         if (err) {
@@ -34,20 +38,36 @@ exports.handler = lumigo.trace((event, context, callback) => {
             return;
         }
 
-        const params = {
-            MessageBody: JSON.stringify({
+        // const params = {
+        //     MessageBody: JSON.stringify({
+        //         rate: parseFloat(price.data.amount),
+        //         dateTime: new Date(),
+        //         idempotencyKey: uuidv4(),
+        //     }),
+        //     QueueUrl: queueUrl
+        // };
+
+        let params = {
+            Message: JSON.stringify({
                 rate: parseFloat(price.data.amount),
                 dateTime: new Date(),
                 idempotencyKey: uuidv4(),
             }),
-            QueueUrl: queueUrl
+            TopicArn: topic
         };
 
-        sqs.sendMessage(params, function (err, data) {
+        sns.publish(params, function(err, data) {
             if (err) {
-                logger.error({"msg": "failed to send message", "body": params.MessageBody, "err": err});
+                logger.error({"msg": "failed to publish event", "body": params.MessageBody, "err": err});
                 callback(err);
             }
         });
+
+        // sqs.sendMessage(params, function (err, data) {
+        //     if (err) {
+        //         logger.error({"msg": "failed to send message", "body": params.MessageBody, "err": err});
+        //         callback(err);
+        //     }
+        // });
     });
 });

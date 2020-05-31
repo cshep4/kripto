@@ -117,7 +117,7 @@ jobs:
           name: Build Functions
           command: |
             cd << parameters.service_path >>
-            make build
+            make -B build
 
       - persist_to_workspace:
           root: .
@@ -146,7 +146,8 @@ jobs:
               "coinbaseProSandboxPassphrase":"%s",
               "coinbaseProSandboxSecretKey":"%s",
               "awsAccountId": "%s",
-              "lumigoToken": "%s"
+              "lumigoToken": "%s",
+              "sendGridApiKey": "%s"
             }\n'
             printf "$JSON" \
             "${MONGO_URI}" \
@@ -154,8 +155,7 @@ jobs:
             "${COINBASE_API_KEY}" "${COINBASE_SECRET_KEY}" \
             "${COINBASE_PRO_KEY}" "${COINBASE_PRO_PASSPHRASE}" "${COINBASE_PRO_SECRET}" \
             "${COINBASE_PRO_SANDBOX_KEY}" "${COINBASE_PRO_SANDBOX_PASSPHRASE}" "${COINBASE_PRO_SANDBOX_SECRET}" \
-            "${AWS_ACCOUNT_ID}" \
-            "${LUMIGO_TOKEN}" > secrets.json
+            "${AWS_ACCOUNT_ID}" "${LUMIGO_TOKEN}" "${SEND_GRID_API_KEY}" > secrets.json
 
       - run:
           name: Install pip
@@ -172,126 +172,158 @@ jobs:
             serverless deploy
 workflows:
   version: 2.1
-#  shared-go-lambda:
-#    jobs:
-#      - checkout-code
-#      - vendor:
-#          docker_image: cimg/go:1.14
-#          service_path: shared/go/lambda
-#          dependency_file: go.sum
-#          dependencies_location: /go/pkg/mod
-#          requires:
-#            - checkout-code
-#      - unit:
-#          docker_image: cimg/go:1.14
-#          service_path: shared/go/lambda
-#          requires:
-#            - vendor
-#      - integration:
-#          docker_image: cimg/go:1.14
-#          service_path: shared/go/lambda
-#          requires:
-#            - vendor
-#  shared-go-log:
-#    jobs:
-#      - checkout-code
-#      - vendor:
-#          docker_image: cimg/go:1.14
-#          service_path: shared/go/log
-#          dependency_file: go.sum
-#          dependencies_location: /go/pkg/mod
-#          requires:
-#            - checkout-code
-#      - unit:
-#          docker_image: cimg/go:1.14
-#          service_path: shared/go/log
-#          requires:
-#            - vendor
-#      - integration:
-#          docker_image: cimg/go:1.14
-#          service_path: shared/go/log
-#          requires:
-#            - vendor
-#  shared-go-mongodb:
-#    jobs:
-#      - checkout-code
-#      - vendor:
-#          docker_image: cimg/go:1.14
-#          service_path: shared/go/mongodb
-#          dependency_file: go.sum
-#          dependencies_location: /go/pkg/mod
-#          requires:
-#            - checkout-code
-#      - unit:
-#          docker_image: cimg/go:1.14
-#          service_path: shared/go/mongodb
-#          requires:
-#            - vendor
-#      - integration:
-#          docker_image: cimg/go:1.14
-#          service_path: shared/go/mongodb
-#          requires:
-#            - vendor
-#  shared-go-idempotency:
-#    jobs:
-#      - checkout-code
-#      - vendor:
-#          docker_image: cimg/go:1.14
-#          service_path: shared/go/idempotency
-#          dependency_file: go.sum
-#          dependencies_location: /go/pkg/mod
-#          requires:
-#            - checkout-code
-#      - unit:
-#          docker_image: cimg/go:1.14
-#          service_path: shared/go/idempotency
-#          requires:
-#            - vendor
-#      - integration:
-#          docker_image: cimg/go:1.14
-#          service_path: shared/go/idempotency
-#          requires:
-#            - vendor
-#  data-storer:
-#    jobs:
-#      - checkout-code
-#      - vendor:
-#          docker_image: cimg/go:1.14
-#          service_path: services/data-storer
-#          dependency_file: go.sum
-#          dependencies_location: /go/pkg/mod
-#          requires:
-#            - checkout-code
-#      - unit:
-#          docker_image: cimg/go:1.14
-#          service_path: services/data-storer
-#          requires:
-#            - vendor
-#      - integration:
-#          docker_image: cimg/go:1.14
-#          service_path: services/data-storer
-#          requires:
-#            - vendor
-#  trader:
-#    jobs:
-#      - checkout-code
-#      - vendor:
-#          docker_image: cimg/go:1.14
-#          service_path: services/trader
-#          dependency_file: go.sum
-#          dependencies_location: /go/pkg/mod
-#          requires:
-#            - checkout-code
-#      - unit:
-#          docker_image: cimg/go:1.14
-#          service_path: services/trader
-#          requires:
-#            - vendor
-#      - integration:
-#          docker_image: cimg/go:1.14
-#          service_path: services/trader
-#          requires:
-#            - vendor
+  shared-go-lambda:
+    jobs:
+      - checkout-code
+      - vendor:
+          docker_image: cimg/go:1.14
+          service_path: shared/go/lambda
+          dependency_file: go.sum
+          dependencies_location: /go/pkg/mod
+          requires:
+            - checkout-code
+      - unit:
+          docker_image: cimg/go:1.14
+          service_path: shared/go/lambda
+          requires:
+            - vendor
+      - integration:
+          docker_image: cimg/go:1.14
+          service_path: shared/go/lambda
+          requires:
+            - vendor
+  shared-go-log:
+    jobs:
+      - checkout-code
+      - vendor:
+          docker_image: cimg/go:1.14
+          service_path: shared/go/log
+          dependency_file: go.sum
+          dependencies_location: /go/pkg/mod
+          requires:
+            - checkout-code
+      - unit:
+          docker_image: cimg/go:1.14
+          service_path: shared/go/log
+          requires:
+            - vendor
+      - integration:
+          docker_image: cimg/go:1.14
+          service_path: shared/go/log
+          requires:
+            - vendor
+  shared-go-mongodb:
+    jobs:
+      - checkout-code
+      - vendor:
+          docker_image: cimg/go:1.14
+          service_path: shared/go/mongodb
+          dependency_file: go.sum
+          dependencies_location: /go/pkg/mod
+          requires:
+            - checkout-code
+      - unit:
+          docker_image: cimg/go:1.14
+          service_path: shared/go/mongodb
+          requires:
+            - vendor
+      - integration:
+          docker_image: cimg/go:1.14
+          service_path: shared/go/mongodb
+          requires:
+            - vendor
+  shared-go-idempotency:
+    jobs:
+      - checkout-code
+      - vendor:
+          docker_image: cimg/go:1.14
+          service_path: shared/go/idempotency
+          dependency_file: go.sum
+          dependencies_location: /go/pkg/mod
+          requires:
+            - checkout-code
+      - unit:
+          docker_image: cimg/go:1.14
+          service_path: shared/go/idempotency
+          requires:
+            - vendor
+      - integration:
+          docker_image: cimg/go:1.14
+          service_path: shared/go/idempotency
+          requires:
+            - vendor
+  data-storer:
+    jobs:
+      - checkout-code
+      - vendor:
+          docker_image: cimg/go:1.14
+          service_path: services/data-storer
+          dependency_file: go.sum
+          dependencies_location: /go/pkg/mod
+          requires:
+            - checkout-code
+      - unit:
+          docker_image: cimg/go:1.14
+          service_path: services/data-storer
+          requires:
+            - vendor
+      - integration:
+          docker_image: cimg/go:1.14
+          service_path: services/data-storer
+          requires:
+            - vendor
+  trader:
+    jobs:
+      - checkout-code
+      - vendor:
+          docker_image: cimg/go:1.14
+          service_path: services/trader
+          dependency_file: go.sum
+          dependencies_location: /go/pkg/mod
+          requires:
+            - checkout-code
+      - unit:
+          docker_image: cimg/go:1.14
+          service_path: services/trader
+          requires:
+            - vendor
+      - integration:
+          docker_image: cimg/go:1.14
+          service_path: services/trader
+          requires:
+            - vendor
+  shared-java-idempotency:
+    jobs:
+      - checkout-code
+      - unit:
+          docker_image: cimg/openjdk:11.0
+          service_path: shared/java/idempotency
+          requires:
+            - checkout-code
+      - integration:
+          docker_image: cimg/openjdk:11.0
+          service_path: shared/java/idempotency
+          requires:
+            - checkout-code
+  receipt-emailer:
+    jobs:
+      - checkout-code
+      - build:
+          name: build-java-idempotency
+          docker_image: cimg/openjdk:11.0
+          service_path: shared/java/idempotency
+          requires:
+            - checkout-code
+      - unit:
+          docker_image: cimg/openjdk:11.0
+          service_path: services/receipt-emailer
+          requires:
+            - build-java-idempotency
+      - integration:
+          docker_image: cimg/openjdk:11.0
+          service_path: services/receipt-emailer
+          requires:
+            - build-java-idempotency
   deploy-functions:
     jobs:
       - checkout-code:
@@ -299,16 +331,6 @@ workflows:
             branches:
               only:
                 - master
-#      - build:
-#          name: build-trade-decider
-#          docker_image: circleci/python:3.6.1
-#          service_path: services/trade-decider
-#          requires:
-#            - checkout-code
-#          filters:
-#            branches:
-#              only:
-#                - master
       - build:
           name: build-data-storer
           docker_image: cimg/go:1.14
@@ -339,9 +361,29 @@ workflows:
             branches:
               only:
                 - master
+      - build:
+          name: build-java-idempotency
+          docker_image: cimg/openjdk:11.0
+          service_path: shared/java/idempotency
+          requires:
+            - build-trader
+          filters:
+            branches:
+              only:
+                - master
+      - build:
+          name: build-receipt-emailer
+          docker_image: cimg/openjdk:11.0
+          service_path: services/receipt-emailer
+          requires:
+            - build-java-idempotency
+          filters:
+            branches:
+              only:
+                - master
       - deploy:
           requires:
-            - build-rate-retriever
+            - build-receipt-emailer
           filters:
             branches:
               only:

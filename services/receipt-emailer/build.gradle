@@ -1,0 +1,103 @@
+apply plugin: 'java'
+apply plugin: 'maven'
+
+group = 'com.cshep4.kripto.receiptemailer'
+version = '1.0.0'
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+}
+
+buildscript {
+    ext.aws_version = '1.11.63'
+    ext.gradle_deps = '0.6.0.RELEASE'
+
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:1.3.71"
+        classpath "io.spring.gradle:dependency-management-plugin:1.0.7.RELEASE"
+    }
+
+
+}
+
+apply plugin: 'kotlin'
+apply plugin: 'application'
+apply plugin: "io.spring.dependency-management"
+
+mainClassName = 'com.cshep4.kripto.receiptemailer.Handler'
+
+defaultTasks 'run'
+
+repositories {
+    mavenCentral()
+    maven { url "http://maven.nuiton.org/release" }
+    flatDir {
+        dirs 'libs'
+    }
+}
+
+jar {
+    // Not really needed here
+    manifest {
+        attributes 'Main-Class': 'com.cshep4.kripto.receiptemailer.Handler'
+    }
+
+    // This line of code recursively collects and copies all of a project's files
+    // and adds them to the JAR itself. One can extend this task, to skip certain
+    // files or particular types at will
+    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+}
+
+dependencyManagement {
+    imports {
+        mavenBom "com.amazonaws:aws-java-sdk-bom:$aws_version"
+    }
+}
+
+dependencies {
+    compile "org.jetbrains.kotlin:kotlin-stdlib:1.3.71"
+    compile "com.amazonaws:aws-java-sdk-lambda"
+    compile "com.amazonaws:aws-lambda-java-events:3.1.0"
+    compile "com.amazonaws:aws-lambda-java-core:1.2.1"
+
+    implementation 'org.litote.kmongo:kmongo:4.0.1'
+    implementation 'com.google.code.gson:gson:2.8.6'
+    implementation files('../../shared/java/idempotency/build/libs/idempotency.jar')
+
+    compile group: 'io.lumigo', name: 'java-tracer', version: '1.0.30'
+    compile group: 'io.lumigo', name: 'lumigo-agent', version: '1.0.30'
+
+    compile group: 'com.sendgrid', name: 'sendgrid-java', version: '4.5.0'
+
+    testCompile 'junit:junit:4.11'
+    testCompile "org.jetbrains.kotlin:kotlin-test-junit:1.3.71"
+
+    testImplementation "com.natpryce:hamkrest:1.7.0.3"
+}
+
+test {
+    String testType = System.properties['test.profile']
+    if (testType == 'integration') {
+        include '**/*IntegrationTest.*'
+        include '**/*IntegrationSpec.*'
+    } else if (testType == 'unit') {
+        include '**/*Test.*'
+        include '**/*Spec.*'
+        exclude '**/*IntegrationTest.*'
+        exclude '**/*IntegrationSpec.*'
+    } else if (testType == 'all') {
+        include '**/*Test.*'
+        include '**/*Spec.*'
+    } else {
+        //Default to unit
+        include '**/*Test.*'
+        include '**/*Spec.*'
+        exclude '**/*IntegrationTest.*'
+        exclude '**/*IntegrationSpec.*'
+    }
+}

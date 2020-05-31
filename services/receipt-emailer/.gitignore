@@ -1,0 +1,15 @@
+*.iml
+.gradle
+/local.properties
+/.idea
+.DS_Store
+/build
+/captures
+listJars/
+gradlew.bat
+repo/
+
+setup/config*sh
+setup/curl*
+
+out

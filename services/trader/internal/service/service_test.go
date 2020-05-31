@@ -101,7 +101,7 @@ func TestService_Trade(t *testing.T) {
 		s, err := service.New(amount, url, publisher, trader)
 		require.NoError(t, err)
 
-		err = s.Trade(context.Background(), tradeType)
+		err = s.Trade(context.Background(), tradeType, "")
 		require.Error(t, err)
 
 		assert.True(t, errors.Is(err, testErr))
@@ -140,13 +140,50 @@ func TestService_Trade(t *testing.T) {
 		s, err := service.New(amount, topic, publisher, trader)
 		require.NoError(t, err)
 
-		err = s.Trade(ctx, tradeType)
+		err = s.Trade(ctx, tradeType, "")
 		require.Error(t, err)
 
 		assert.True(t, errors.Is(err, testErr))
 	})
 
 	t.Run("returns nil if trade executed successfully", func(t *testing.T) {
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		publisher := publish_mocks.NewMockPublisher(ctrl)
+		trader := trader_mocks.NewMockTrader(ctrl)
+
+		const (
+			defaultAmount = "default amount"
+			amount        = "amount"
+			topic         = "topic"
+			tradeType     = "type"
+			id            = "tradeId"
+		)
+
+		order := &trade.TradeResponse{
+			Id: id,
+		}
+		b, err := json.Marshal(order)
+		require.NoError(t, err)
+
+		publishInput := &sns.PublishInput{
+			Message:  aws.String(string(b)),
+			TopicArn: aws.String(topic),
+		}
+		ctx := context.Background()
+
+		trader.EXPECT().Trade(trade.TradeType(tradeType), amount).Return(order, nil)
+		publisher.EXPECT().PublishWithContext(ctx, publishInput).Return(nil, nil)
+
+		s, err := service.New(defaultAmount, topic, publisher, trader)
+		require.NoError(t, err)
+
+		err = s.Trade(ctx, tradeType, amount)
+		require.NoError(t, err)
+	})
+
+	t.Run("default amount is used if amount is not included in request", func(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
@@ -178,7 +215,7 @@ func TestService_Trade(t *testing.T) {
 		s, err := service.New(amount, topic, publisher, trader)
 		require.NoError(t, err)
 
-		err = s.Trade(ctx, tradeType)
+		err = s.Trade(ctx, tradeType, "")
 		require.NoError(t, err)
 	})
 }

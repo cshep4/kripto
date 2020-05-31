@@ -50,16 +50,15 @@ package:
   individually: true
   exclude:
     - /**
-  include:
-    - services/data-storer/bin/**
-    - services/trader/bin/**
-    - services/rate-retriever/**
 
 functions:
   data-reader:
     runtime: go1.x
     memorySize: 128
     handler: services/data-storer/bin/data-reader
+    package:
+      include:
+        - services/data-storer/bin/data-reader
     environment:
       MONGO_URI: ${self:custom.secrets.mongoUri}
   rate-writer:
@@ -74,12 +73,15 @@ functions:
           batchSize: 1
           arn:
             Fn::GetAtt:
-              - RateUpdate
+              - storeRateQueue
               - Arn
   trade-writer:
     runtime: go1.x
     memorySize: 128
     handler: services/data-storer/bin/trade-writer
+    package:
+      include:
+        - services/data-storer/bin/trade-writer
     environment:
       MONGO_URI: ${self:custom.secrets.mongoUri}
     reservedConcurrency: 1
@@ -94,7 +96,11 @@ functions:
     runtime: nodejs12.x
     memorySize: 128
     handler: services/rate-retriever.handler
+    package:
+      include:
+        - services/rate-retriever
     environment:
+      TOPIC: "arn:aws:sns:${self:provider.region}:${self:custom.secrets.awsAccountId}:RateUpdate"
       QUEUE_URL: "https://sqs.${self:provider.region}.amazonaws.com/${self:custom.secrets.awsAccountId}/RateUpdate"
       COINBASE_API_KEY: ${self:custom.secrets.coinbaseApiKey}
       COINBASE_SECRET_KEY: ${self:custom.secrets.coinbaseSecretKey}
@@ -104,6 +110,9 @@ functions:
     runtime: go1.x
     memorySize: 128
     handler: services/trader/bin/trade
+    package:
+      include:
+        - services/trader/bin/trade
     environment:
       TOPIC: "arn:aws:sns:${self:provider.region}:${self:custom.secrets.awsAccountId}:Trade"
       COINBASE_PRO_KEY: ${self:custom.secrets.coinbaseProApiKey}
@@ -120,6 +129,35 @@ functions:
     timeout: 120
     module: services/trade-decider
     handler: app.handler
+    package:
+      include:
+        - services/trade-decider
     environment:
       READER_FUNCTION_NAME: "${self:provider.profile}-${self:provider.stage}-data-reader"
       TRADER_FUNCTION_NAME: "${self:provider.profile}-${self:provider.stage}-trade"
+    reservedConcurrency: 1
+    events:
+      - sqs:
+          batchSize: 1
+          arn:
+            Fn::GetAtt:
+              - initiateTradeQueue
+              - Arn
+  receipt-emailer:
+    runtime: java11
+    memorySize: 128
+    handler: com.cshep4.kripto.receiptemailer.handler.Handler
+    environment:
+      SEND_GRID_API_KEY: ${self:custom.secrets.sendGridApiKey}
+      RECEIPT_RECIPIENT: chris_shepherd2@hotmail.com
+      MONGO_URI: ${self:custom.secrets.mongoUri}
+    package:
+      artifact: services/receipt-emailer/build/libs/receipt-emailer-1.0.0.jar
+    reservedConcurrency: 1
+    events:
+      - sqs:
+          batchSize: 1
+          arn:
+            Fn::GetAtt:
+              - emailReceiptQueue
+              - Arn
