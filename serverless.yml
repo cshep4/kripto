@@ -135,10 +135,29 @@ functions:
     environment:
       READER_FUNCTION_NAME: "${self:provider.profile}-${self:provider.stage}-data-reader"
       TRADER_FUNCTION_NAME: "${self:provider.profile}-${self:provider.stage}-trade"
+    reservedConcurrency: 1
     events:
       - sqs:
           batchSize: 1
           arn:
             Fn::GetAtt:
               - initiateTradeQueue
+              - Arn
+  receipt-emailer:
+    runtime: java11
+    memorySize: 128
+    handler: com.cshep4.kripto.receiptemailer.handler.Handler
+    environment:
+      SEND_GRID_API_KEY: ${self:custom.secrets.sendGridApiKey}
+      RECEIPT_RECIPIENT: chris_shepherd2@hotmail.com
+      MONGO_URI: ${self:custom.secrets.mongoUri}
+    package:
+      artifact: services/receipt-emailer/build/libs/receipt-emailer-1.0.0.jar
+    reservedConcurrency: 1
+    events:
+      - sqs:
+          batchSize: 1
+          arn:
+            Fn::GetAtt:
+              - emailReceiptQueue
               - Arn
