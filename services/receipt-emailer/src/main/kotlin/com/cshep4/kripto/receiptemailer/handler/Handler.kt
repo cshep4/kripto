@@ -1,0 +1,61 @@
+package com.cshep4.kripto.receiptemailer.handler
+
+import com.amazonaws.services.lambda.runtime.Context
+import com.amazonaws.services.lambda.runtime.RequestHandler
+import com.amazonaws.services.lambda.runtime.events.SQSEvent
+import com.cshep4.kripto.idempotency.Idempotencer
+import com.cshep4.kripto.idempotency.result.IdempotencyResult
+import com.cshep4.kripto.receiptemailer.email.Emailer
+import com.cshep4.kripto.receiptemailer.model.Trade
+import com.cshep4.kripto.receiptemailer.result.EmailResult
+import com.google.gson.Gson
+import com.sendgrid.SendGrid
+import io.lumigo.handlers.LumigoRequestExecutor
+import org.litote.kmongo.KMongo
+import java.lang.Exception
+import java.util.function.Supplier
+import kotlin.system.exitProcess
+
+class Handler : RequestHandler<SQSEvent, Unit> {
+    private val sendGrid = SendGrid(getEnv("SEND_GRID_API_KEY"))
+    private val emailer = Emailer(getEnv("RECEIPT_RECIPIENT"), sendGrid)
+
+    private val client = KMongo.createClient(getEnv("MONGO_URI"))
+    private val idempotencer = Idempotencer("receipt", client)
+
+    override fun handleRequest(event: SQSEvent, context: Context?) {
+        val supplier: Supplier<Unit> = Supplier<Unit> {
+            val logger = context?.logger
+
+            event.records.forEach {
+                val trade = Gson().fromJson(it.body, Trade::class.java)
+
+                when (val i = idempotencer.check(trade.id)) {
+                    is IdempotencyResult.Error -> throw Exception(i.message, i.cause)
+                    is IdempotencyResult.Success -> {
+                        if (i.exists) {
+                            logger?.log("msg_already_processed - trade: " + Gson().toJson(trade))
+                            return@Supplier
+                        }
+                    }
+                }
+
+                when (val e = emailer.send(context, trade)) {
+                    is EmailResult.Error -> throw throw Exception(e.message, e.cause)
+                }
+            }
+        }
+
+        return LumigoRequestExecutor.execute(event, context, supplier)
+    }
+
+    private fun getEnv(key: String): String {
+        val env = System.getenv(key)
+        if (env != null) {
+            return env
+        }
+
+        println("missing environment variable: $key")
+        exitProcess(1)
+    }
+}

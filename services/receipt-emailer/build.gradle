@@ -1,7 +1,7 @@
 apply plugin: 'java'
 apply plugin: 'maven'
 
-group = 'com.cshep4.kripto.accountretriever'
+group = 'com.cshep4.kripto.receiptemailer'
 version = '1.0.0'
 
 sourceCompatibility = 1.8
@@ -29,7 +29,7 @@ apply plugin: 'kotlin'
 apply plugin: 'application'
 apply plugin: "io.spring.dependency-management"
 
-mainClassName = 'com.cshep4.kripto.accountretriever.Handler'
+mainClassName = 'com.cshep4.kripto.receiptemailer.Handler'
 
 defaultTasks 'run'
 
@@ -44,7 +44,7 @@ repositories {
 jar {
     // Not really needed here
     manifest {
-        attributes 'Main-Class': 'com.cshep4.kripto.accountretriever.Handler'
+        attributes 'Main-Class': 'com.cshep4.kripto.receiptemailer.Handler'
     }
 
     // This line of code recursively collects and copies all of a project's files
@@ -72,8 +72,12 @@ dependencies {
     compile group: 'io.lumigo', name: 'java-tracer', version: '1.0.30'
     compile group: 'io.lumigo', name: 'lumigo-agent', version: '1.0.30'
 
+    compile group: 'com.sendgrid', name: 'sendgrid-java', version: '4.5.0'
+
     testCompile 'junit:junit:4.11'
     testCompile "org.jetbrains.kotlin:kotlin-test-junit:1.3.71"
+
+    testImplementation "com.natpryce:hamkrest:1.7.0.3"
 }
 
 test {
