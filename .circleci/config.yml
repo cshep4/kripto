@@ -366,7 +366,7 @@ workflows:
           docker_image: cimg/openjdk:11.0
           service_path: shared/java/idempotency
           requires:
-            - build-trader
+            - build-rate-retriever
           filters:
             branches:
               only:
