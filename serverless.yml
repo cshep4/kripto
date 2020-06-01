@@ -22,13 +22,7 @@ provider:
         - "sns:Publish"
       Resource:
         - "arn:aws:sns:${self:provider.region}:${self:custom.secrets.awsAccountId}:Trade"
-    - Effect: "Allow"
-      Action:
-        - "sqs:SendMessage"
-        - "sqs:GetQueueUrl"
-      Resource:
-        - "arn:aws:sqs:${self:provider.region}:${self:custom.secrets.awsAccountId}:RateUpdate"
-        - "arn:aws:sqs:${self:provider.region}:${self:custom.secrets.awsAccountId}:Trade"
+        - "arn:aws:sns:${self:provider.region}:${self:custom.secrets.awsAccountId}:RateUpdate"
     - Effect: "Allow"
       Action:
         - "sqs:ListQueues"
