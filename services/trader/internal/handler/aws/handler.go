@@ -3,7 +3,6 @@ package aws
 import (
 	"context"
 	"fmt"
-
 	"github.com/cshep4/kripto/shared/go/log"
 )
 
@@ -34,7 +33,11 @@ func (i InvalidParameterError) Error() string {
 func (h *Handler) Trade(ctx context.Context, req TradeRequest) error {
 	err := h.Service.Trade(ctx, req.TradeType, req.Amount)
 	if err != nil {
-		log.Error(ctx, "error_trading", log.ErrorParam(err))
+		log.Error(ctx, "error_trading",
+			log.ErrorParam(err),
+			log.SafeParam("tradeType", req.TradeType),
+			log.SafeParam("amount", req.Amount),
+		)
 		return fmt.Errorf("trade: %w", err)
 	}
 
