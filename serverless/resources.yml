@@ -135,6 +135,7 @@ Resources:
     Type: "AWS::SQS::Queue"
     Properties:
       QueueName: "InitiateTrade"
+      VisibilityTimeout: 120
       RedrivePolicy:
         deadLetterTargetArn: !GetAtt
           - initiateTradeQueueDLQ
