@@ -56,6 +56,8 @@ functions:
     memorySize: 128
     handler: services/data-storer/bin/data-reader
     package:
+      exclude:
+        - /**
       include:
         - services/data-storer/bin/data-reader
     environment:
@@ -79,6 +81,8 @@ functions:
     memorySize: 128
     handler: services/data-storer/bin/trade-writer
     package:
+      exclude:
+        - /**
       include:
         - services/data-storer/bin/trade-writer
     environment:
@@ -96,6 +100,8 @@ functions:
     memorySize: 128
     handler: services/rate-retriever.handler
     package:
+      exclude:
+        - /**
       include:
         - services/rate-retriever
     environment:
@@ -110,6 +116,8 @@ functions:
     memorySize: 128
     handler: services/trader/bin/trade
     package:
+      exclude:
+        - /**
       include:
         - services/trader/bin/trade
     environment:
@@ -129,6 +137,8 @@ functions:
     module: services/trade-decider
     handler: app.handler
     package:
+      exclude:
+        - /**
       include:
         - services/trade-decider
     environment:
