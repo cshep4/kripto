@@ -128,7 +128,7 @@ functions:
     handler: app.handler
     package:
       include:
-        - services/trade-decider
+        - "*/**"
     environment:
       READER_FUNCTION_NAME: "${self:provider.profile}-${self:provider.stage}-data-reader"
       TRADER_FUNCTION_NAME: "${self:provider.profile}-${self:provider.stage}-trade"
@@ -142,7 +142,7 @@ functions:
               - Arn
   receipt-emailer:
     runtime: java11
-    memorySize: 128
+    memorySize: 512
     handler: com.cshep4.kripto.receiptemailer.handler.Handler
     environment:
       SEND_GRID_API_KEY: ${self:custom.secrets.sendGridApiKey}
