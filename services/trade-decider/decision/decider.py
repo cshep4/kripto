@@ -1,5 +1,6 @@
 import logging
 import random
+from decimal import Decimal
 
 from model.rate import Rate
 
@@ -14,7 +15,7 @@ class Decider:
         # randomly decide whether to trade
         decision = random.choice([True, False])
         # amount is 1/100 BTC
-        amount = round(rates[0].rate / 100, 2)
+        amount = round(Decimal(rates[0].rate / 100), 2)
         # randomly decide whether to buy or sell
         trade_type = random.choice(["buy", "sell"])
 
