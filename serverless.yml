@@ -43,7 +43,7 @@ resources:
 package:
   individually: true
   exclude:
-    - ./**
+    - /**
 
 functions:
   data-reader:
