@@ -44,6 +44,11 @@ package:
   individually: true
   exclude:
     - /**
+    - services/
+    - shared/
+    - docs/
+    - .circleci/
+    - node_modules/
 
 functions:
   data-reader:
