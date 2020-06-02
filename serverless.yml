@@ -95,7 +95,7 @@ functions:
     handler: services/rate-retriever.handler
     package:
       include:
-        - services/rate-retriever
+        - services/rate-retriever/**
     environment:
       TOPIC: "arn:aws:sns:${self:provider.region}:${self:custom.secrets.awsAccountId}:RateUpdate"
       QUEUE_URL: "https://sqs.${self:provider.region}.amazonaws.com/${self:custom.secrets.awsAccountId}/RateUpdate"
