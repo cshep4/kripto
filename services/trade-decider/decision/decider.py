@@ -12,8 +12,8 @@ class Decider:
     def decide(self, rates: [Rate]) -> (bool, float, str):
         self.logger.info("deciding whether to trade...")
 
-        # randomly decide whether to trade
-        decision = random.choice([True, False])
+        # randomly decide whether to trade (1 in 60 chance, should average once an hour)
+        decision = (random.randint(0,59) == 16)
         # amount is 1/100 BTC
         amount = round(Decimal(rates[0].rate / 100), 2)
         # randomly decide whether to buy or sell
