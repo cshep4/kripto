@@ -12,21 +12,8 @@ class Decider:
         self.base_column = "p" # price/rate
         self.ema_short_span = 9
         self.ema_long_span = 21
-        
-        
-    def decide(self, rates: [Rate]) -> (bool, float, str):
-        self.logger.info("deciding whether to trade...")
 
-        # randomly decide whether to trade (1 in 60 chance, should average once an hour)
-        decision = (random.randint(0,59) == 16)
-        # amount is 1/100 BTC
-        amount = round(Decimal(rates[0].rate / 100), 2)
-        # randomly decide whether to buy or sell
-        trade_type = random.choice(["buy", "sell"])
-
-        return decision, amount, trade_type
-
-    def decide_new(
+    def decide(
         data: dict,
         bitcoin,
         usd,
@@ -77,14 +64,6 @@ class Decider:
 
         }
         return decision, amount, trade_type, properties
-    
-# def buy_USD(bitcoin,trade_percentage,price,trade_commission):
-#     how_many = ((bitcoin*trade_percentage)*price)*(1-trade_commission)
-#     return how_many
-
-# def buy_bitcoin(usd,trade_percentage,price,trade_commission):
-#     how_many = ((usd*trade_percentage)/price)*(1-trade_commission)
-#     return how_many
 
 def buy_USD(bitcoin,trade_percentage,price):
     how_many = ((bitcoin*trade_percentage)*price)
