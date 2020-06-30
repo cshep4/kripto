@@ -17,15 +17,12 @@ class Retriever:
             Payload="")
 
         d = json.loads(resp['Payload'].read())
-        self.logger.info('{}'.format(d))
 
-        rates: [Rate] = []
+        rates: dict = {"p": []}
 
         for r in d:
-            rate = Rate()
-            rate.id = r['id']
-            rate.rate = r['rate']
-            rate.date_time = r['dateTime']  # datetime.strptime(r['dateTime'], '%Y-%m-%dT%H:%M:%S.%fZ')
-            rates.append(rate)
+            rates["p"].append(r['rate'])
+
+        self.logger.info('{}'.format(rates))
 
         return rates
