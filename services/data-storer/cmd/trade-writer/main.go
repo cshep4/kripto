@@ -36,7 +36,7 @@ var (
 
 	runner = lambda.New(
 		handler.StoreTrade,
-		lambda.WithPreExecute(log.Middleware(cfg.LogLevel, cfg.ServiceName, cfg.FunctionName)),
+		lambda.WithPreExecute(log.Middleware(logLevel, serviceName, functionName)),
 	)
 )
 
