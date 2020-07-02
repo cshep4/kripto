@@ -4,28 +4,39 @@ import (
 	"context"
 
 	"github.com/aws/aws-lambda-go/lambda"
-	"github.com/cshep4/kripto/shared/go/log"
 )
 
 type (
-	preExecutorFunc  func(ctx context.Context, payload []byte) (context.Context, []byte, error)
+	preExecutorFunc  func(ctx context.Context, payload []byte) (bool, context.Context, []byte, error)
 	postExecutorFunc func(ctx context.Context, payload []byte) error
+	errorHandlerFunc func(ctx context.Context, err error)
 
 	preExecutor struct {
+		runner  *runner
 		before  preExecutorFunc
 		handler lambda.Handler
 	}
 
 	postExecutor struct {
+		runner  *runner
 		after   postExecutorFunc
 		handler lambda.Handler
+	}
+
+	errorHandler struct {
+		errorHandler errorHandlerFunc
+		handler      lambda.Handler
 	}
 )
 
 func (pe *preExecutor) Invoke(ctx context.Context, payload []byte) ([]byte, error) {
-	ctx, payload, err := pe.before(ctx, payload)
+	done, ctx, payload, err := pe.before(ctx, payload)
 	if err != nil {
 		return nil, err
+	}
+	if done {
+		pe.runner.terminated = true
+		return payload, nil
 	}
 
 	return pe.handler.Invoke(ctx, payload)
@@ -34,7 +45,10 @@ func (pe *preExecutor) Invoke(ctx context.Context, payload []byte) ([]byte, erro
 func (pe *postExecutor) Invoke(ctx context.Context, payload []byte) ([]byte, error) {
 	res, err := pe.handler.Invoke(ctx, payload)
 	if err != nil {
-		return res, err
+		return nil, err
+	}
+	if pe.runner.terminated {
+		return res, nil
 	}
 
 	err = pe.after(ctx, payload)
@@ -45,14 +59,13 @@ func (pe *postExecutor) Invoke(ctx context.Context, payload []byte) ([]byte, err
 	return res, nil
 }
 
-func LogMiddleware(level, service, function string) preExecutorFunc {
-	return func(ctx context.Context, payload []byte) (context.Context, []byte, error) {
-		ctx = log.WithFunctionName(ctx,
-			log.New(level),
-			service,
-			function,
-		)
-
-		return ctx, payload, nil
+func (eh *errorHandler) Invoke(ctx context.Context, payload []byte) ([]byte, error) {
+	res, err := eh.handler.Invoke(ctx, payload)
+	if err == nil {
+		return res, nil
 	}
+
+	eh.errorHandler(ctx, err)
+
+	return nil, err
 }

@@ -9,7 +9,6 @@ import (
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/cshep4/kripto/services/data-storer/internal/model"
-	"github.com/cshep4/kripto/shared/go/idempotency"
 	"github.com/cshep4/kripto/shared/go/log"
 )
 
@@ -21,8 +20,7 @@ type (
 	}
 
 	Handler struct {
-		Service      Servicer
-		Idempotencer idempotency.Idempotencer
+		Service Servicer
 	}
 
 	// InvalidParameterError is returned when a required parameter passed to New is invalid.
@@ -70,21 +68,6 @@ func (h *Handler) StoreTrade(ctx context.Context, sqsEvent events.SQSEvent) erro
 			continue
 		}
 
-		ok, err := h.Idempotencer.Check(ctx, trade.Id)
-		if err != nil {
-			log.Error(ctx, "error_checking_idempotency", log.ErrorParam(err))
-			continue
-		}
-		if ok {
-			log.Info(ctx, "msg_already_processed",
-				log.SafeParam("id", trade.Id),
-				log.SafeParam("createdAt", trade.CreatedAt),
-				log.SafeParam("btc", trade.Value.BTC),
-				log.SafeParam("gbp", trade.Value.GBP),
-			)
-			continue
-		}
-
 		err = h.Service.StoreTrade(ctx, trade)
 		if err != nil {
 			log.Error(ctx, "error_storing_trade",
@@ -111,20 +94,6 @@ func (h *Handler) StoreRate(ctx context.Context, sqsEvent events.SQSEvent) error
 		err := json.Unmarshal([]byte(msg.Body), &req)
 		if err != nil {
 			log.Error(ctx, "invalid_msg_body", log.ErrorParam(err))
-			continue
-		}
-
-		ok, err := h.Idempotencer.Check(ctx, req.IdempotencyKey)
-		if err != nil {
-			log.Error(ctx, "error_checking_idempotency", log.ErrorParam(err))
-			continue
-		}
-		if ok {
-			log.Info(ctx, "msg_already_processed",
-				log.SafeParam("rate", req.Rate),
-				log.SafeParam("dateTime", req.DateTime),
-				log.SafeParam("key", req.IdempotencyKey),
-			)
 			continue
 		}
 

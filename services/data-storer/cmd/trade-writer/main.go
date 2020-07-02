@@ -9,24 +9,34 @@ import (
 	rate "github.com/cshep4/kripto/services/data-storer/internal/store/rate/mongo"
 	trade "github.com/cshep4/kripto/services/data-storer/internal/store/trade/mongo"
 	"github.com/cshep4/kripto/shared/go/idempotency"
+	idempotent "github.com/cshep4/kripto/shared/go/idempotency/middleware"
+	"github.com/cshep4/kripto/shared/go/idempotency/middleware/sqs"
 	"github.com/cshep4/kripto/shared/go/lambda"
+	"github.com/cshep4/kripto/shared/go/log"
 	"github.com/cshep4/kripto/shared/go/mongodb"
+)
+
+const (
+	logLevel     = "info"
+	serviceName  = "data-storer"
+	functionName = "trade-writer"
 )
 
 var (
 	cfg = lambda.FunctionConfig{
-		LogLevel:     "info",
-		ServiceName:  "data-storer",
-		FunctionName: "trade-writer",
+		LogLevel:     logLevel,
+		ServiceName:  serviceName,
+		FunctionName: functionName,
 		Setup:        setup,
-		Initialised:  func() bool { return handler.Service != nil && handler.Idempotencer != nil },
+		Initialised:  func() bool { return handler.Service != nil && middleware != nil },
 	}
 
-	handler = &aws.Handler{}
+	handler    aws.Handler
+	middleware idempotent.Middleware
 
 	runner = lambda.New(
 		handler.StoreTrade,
-		lambda.WithPreExecute(lambda.LogMiddleware(cfg.LogLevel, cfg.ServiceName, cfg.FunctionName)),
+		lambda.WithPreExecute(log.Middleware(cfg.LogLevel, cfg.ServiceName, cfg.FunctionName)),
 	)
 )
 
@@ -56,10 +66,21 @@ func setup(ctx context.Context) error {
 		return fmt.Errorf("initialise_service: %w", err)
 	}
 
-	handler.Idempotencer, err = idempotency.New(ctx, "trade", mongoClient)
+	idempotencer, err := idempotency.New(ctx, "trade", mongoClient)
 	if err != nil {
 		return fmt.Errorf("initialise_idempotencer: %w", err)
 	}
+
+	middleware, err = sqs.NewMiddleware(idempotencer)
+	if err != nil {
+		return fmt.Errorf("initialise_sqs_idempotency_middleware: %w", err)
+	}
+
+	runner.Apply(
+		lambda.WithPreExecute(middleware.PreExecute),
+		lambda.WithPostExecute(middleware.PostExecute),
+		lambda.WithErrorHandler(middleware.HandleError),
+	)
 
 	return nil
 }

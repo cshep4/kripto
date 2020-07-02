@@ -4,6 +4,9 @@ import (
 	"encoding/json"
 	"flag"
 	"log"
+	"time"
+
+	"github.com/aws/aws-lambda-go/lambda/messages"
 
 	"github.com/cshep4/kripto/shared/go/local"
 )
@@ -25,9 +28,15 @@ func main() {
 		}
 	}
 
+	t := time.Now().AddDate(1, 0, 0)
+
 	resp, err := local.Invoke(local.Input{
 		Port:    port,
 		Payload: payloadData,
+		Deadline: &messages.InvokeRequest_Timestamp{
+			Seconds: t.Unix(),
+			Nanos:   int64(t.Nanosecond()),
+		},
 	})
 	if err != nil {
 		log.Println(err)

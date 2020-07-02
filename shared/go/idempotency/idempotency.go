@@ -2,6 +2,7 @@ package idempotency
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -12,17 +13,39 @@ import (
 )
 
 const (
-	fourDays   = int32(345600)
-	collection = "idempotency"
+	fourDays             = int32(345600)
+	collection           = "idempotency"
+	maxIdempotencyChecks = 5
+
+	InProgress State = "in_progress"
+	Complete   State = "complete"
+	Error      State = "error"
 )
 
+var ErrMaxAttemptsExceeded = errors.New("max attempts exceeded")
+
 type (
+	State string
+
 	idempotencyDoc struct {
 		Id        string    `bson:"_id"`
+		State     State     `bson:"state"`
+		Response  []byte    `bson:"response,omitempty"`
+		Err       string    `bson:"error,omitempty"`
 		CreatedAt time.Time `bson:"createdAt"`
+		UpdatedAt time.Time `bson:"updatedAt"`
 	}
+
+	Response struct {
+		Exists   bool
+		Response []byte `bson:"response,omitempty"`
+		Err      error  `bson:"error,omitempty"`
+	}
+
 	Idempotencer interface {
-		Check(ctx context.Context, key string) (bool, error)
+		Check(ctx context.Context, key string) (*Response, error)
+		MarkComplete(ctx context.Context, key string, response []byte) error
+		MarkError(ctx context.Context, key string, err error) error
 	}
 
 	mongoIdempotencer struct {
@@ -88,54 +111,131 @@ func (m *mongoIdempotencer) ensureIndexes(ctx context.Context) error {
 	return nil
 }
 
-func (m *mongoIdempotencer) Check(ctx context.Context, key string) (bool, error) {
-	exists, err := m.getKey(ctx, key)
+func (m *mongoIdempotencer) Check(ctx context.Context, key string) (*Response, error) {
+	doc, err := m.get(ctx, key)
 	if err != nil {
-		return false, fmt.Errorf("check_idempotency: %w", err)
+		return nil, fmt.Errorf("get: %w", err)
 	}
-	if exists {
-		return true, nil
+	if doc == nil {
+		if err := m.store(ctx, key); err != nil {
+			return nil, fmt.Errorf("store: %w", err)
+		}
+
+		return &Response{
+			Exists: false,
+		}, nil
 	}
 
-	if err := m.storeKey(ctx, key); err != nil {
-		return false, fmt.Errorf("store_idempotency: %w", err)
+	if doc.State == InProgress {
+		doc, err = m.waitForResponse(ctx, key)
+		if err != nil {
+			return nil, fmt.Errorf("wait_for_response: %w", err)
+		}
 	}
 
-	return false, nil
+	if doc.State == Error {
+		return &Response{
+			Exists: true,
+			Err:    errors.New(doc.Err),
+		}, nil
+	}
+
+	return &Response{
+		Exists:   true,
+		Response: doc.Response,
+	}, nil
 }
 
-func (m *mongoIdempotencer) getKey(ctx context.Context, key string) (bool, error) {
-	filter := bson.D{{Key: "_id", Value: key}}
+func (m *mongoIdempotencer) waitForResponse(ctx context.Context, key string) (*idempotencyDoc, error) {
+	ticker := time.NewTicker(200 * time.Millisecond)
+	for i := 0; i < maxIdempotencyChecks; i++ {
+		select {
+		case <-ctx.Done():
+			return nil, errors.New("context cancelled")
+		case <-ticker.C:
+			doc, err := m.get(ctx, key)
+			if err != nil {
+				return nil, fmt.Errorf("get: %w", err)
+			}
+			if doc.State != InProgress {
+				return doc, err
+			}
+		}
+	}
 
+	return nil, ErrMaxAttemptsExceeded
+}
+
+func (m *mongoIdempotencer) get(ctx context.Context, key string) (*idempotencyDoc, error) {
 	var doc idempotencyDoc
 	err := m.client.
 		Database(m.database).
 		Collection(collection).
-		FindOne(ctx, filter).
+		FindOne(ctx, bson.D{{Key: "_id", Value: key}}).
 		Decode(&doc)
 
 	if err != nil {
 		switch err {
 		case mongo.ErrNoDocuments:
-			return false, nil
+			return nil, nil
 		default:
-			return true, fmt.Errorf("find_one: %w", err)
+			return nil, fmt.Errorf("find_one: %w", err)
 		}
 	}
 
-	return true, nil
+	return &doc, nil
 }
 
-func (m *mongoIdempotencer) storeKey(ctx context.Context, key string) error {
+func (m *mongoIdempotencer) store(ctx context.Context, key string) error {
 	_, err := m.client.
 		Database(m.database).
 		Collection(collection).
 		InsertOne(ctx, &idempotencyDoc{
 			Id:        key,
+			State:     InProgress,
 			CreatedAt: time.Now(),
+			UpdatedAt: time.Now(),
 		})
 	if err != nil {
 		return fmt.Errorf("insert_one: %w", err)
+	}
+
+	return nil
+}
+
+func (m *mongoIdempotencer) MarkComplete(ctx context.Context, key string, response []byte) error {
+	return m.update(ctx, key, bson.D{{
+		Key: "$set",
+		Value: bson.D{
+			{Key: "response", Value: response},
+			{Key: "state", Value: Complete},
+			{Key: "updatedAt", Value: time.Now()},
+		},
+	}})
+}
+
+func (m *mongoIdempotencer) MarkError(ctx context.Context, key string, err error) error {
+	return m.update(ctx, key, bson.D{{
+		Key: "$set",
+		Value: bson.D{
+			{Key: "error", Value: err.Error()},
+			{Key: "state", Value: Error},
+			{Key: "updatedAt", Value: time.Now()},
+		},
+	}})
+}
+
+func (m *mongoIdempotencer) update(ctx context.Context, key string, update bson.D) error {
+	res, err := m.client.
+		Database(m.database).
+		Collection(collection).
+		UpdateOne(ctx, bson.D{{Key: "_id", Value: key}}, update)
+	if err != nil {
+		return fmt.Errorf("update_one: %w", err)
+	}
+
+	if res.MatchedCount == 0 {
+		return errors.New("item not found")
 	}
 
 	return nil

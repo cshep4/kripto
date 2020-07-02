@@ -9,7 +9,6 @@ import (
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/cshep4/kripto/services/data-storer/internal/handler/aws"
-	"github.com/cshep4/kripto/services/data-storer/internal/mocks/idempotency"
 	"github.com/cshep4/kripto/services/data-storer/internal/mocks/service"
 	"github.com/cshep4/kripto/services/data-storer/internal/model"
 	"github.com/cshep4/kripto/shared/go/log"
@@ -24,11 +23,9 @@ func TestHandler_StoreTrade(t *testing.T) {
 		defer ctrl.Finish()
 
 		var (
-			service      = service_mocks.NewMockServicer(ctrl)
-			idempotencer = idempotency_mocks.NewMockIdempotencer(ctrl)
-			handler      = aws.Handler{
-				Service:      service,
-				Idempotencer: idempotencer,
+			service = service_mocks.NewMockServicer(ctrl)
+			handler = aws.Handler{
+				Service: service,
 			}
 			ctx = log.WithServiceName(context.Background(), log.New("debug"), "test")
 		)
@@ -44,11 +41,9 @@ func TestHandler_StoreTrade(t *testing.T) {
 		defer ctrl.Finish()
 
 		var (
-			service      = service_mocks.NewMockServicer(ctrl)
-			idempotencer = idempotency_mocks.NewMockIdempotencer(ctrl)
-			handler      = aws.Handler{
-				Service:      service,
-				Idempotencer: idempotencer,
+			service = service_mocks.NewMockServicer(ctrl)
+			handler = aws.Handler{
+				Service: service,
 			}
 			ctx   = log.WithServiceName(context.Background(), log.New("debug"), "test")
 			event = events.SQSEvent{
@@ -58,7 +53,6 @@ func TestHandler_StoreTrade(t *testing.T) {
 			}
 		)
 
-		idempotencer.EXPECT().Check(gomock.Any(), gomock.Any()).Times(0)
 		service.EXPECT().StoreTrade(gomock.Any(), gomock.Any()).Times(0)
 
 		err := handler.StoreTrade(ctx, event)
@@ -70,11 +64,9 @@ func TestHandler_StoreTrade(t *testing.T) {
 		defer ctrl.Finish()
 
 		var (
-			service      = service_mocks.NewMockServicer(ctrl)
-			idempotencer = idempotency_mocks.NewMockIdempotencer(ctrl)
-			handler      = aws.Handler{
-				Service:      service,
-				Idempotencer: idempotencer,
+			service = service_mocks.NewMockServicer(ctrl)
+			handler = aws.Handler{
+				Service: service,
 			}
 			ctx   = log.WithServiceName(context.Background(), log.New("debug"), "test")
 			event = events.SQSEvent{
@@ -87,76 +79,6 @@ func TestHandler_StoreTrade(t *testing.T) {
 			}
 		)
 
-		idempotencer.EXPECT().Check(gomock.Any(), gomock.Any()).Times(0)
-		service.EXPECT().StoreTrade(gomock.Any(), gomock.Any()).Times(0)
-
-		err := handler.StoreTrade(ctx, event)
-		require.NoError(t, err)
-	})
-
-	t.Run("does not store trade if error checking idempotency", func(t *testing.T) {
-		ctrl := gomock.NewController(t)
-		defer ctrl.Finish()
-
-		var (
-			service      = service_mocks.NewMockServicer(ctrl)
-			idempotencer = idempotency_mocks.NewMockIdempotencer(ctrl)
-			handler      = aws.Handler{
-				Service:      service,
-				Idempotencer: idempotencer,
-			}
-			ctx   = log.WithServiceName(context.Background(), log.New("debug"), "test")
-			event = events.SQSEvent{
-				Records: []events.SQSMessage{{
-					Body: `{
-						"id": "tradeId",
-						"side": "buy",
-						"productId": "productId",
-						"funds": "1",
-						"fillFees": "2",
-						"filledSize": "3",
-						"executedValue": "4"
-					}`,
-				}},
-			}
-			testErr = errors.New("error")
-		)
-
-		idempotencer.EXPECT().Check(ctx, "tradeId").Return(false, testErr)
-		service.EXPECT().StoreTrade(gomock.Any(), gomock.Any()).Times(0)
-
-		err := handler.StoreTrade(ctx, event)
-		require.NoError(t, err)
-	})
-
-	t.Run("does not store trade if idempotency key exists", func(t *testing.T) {
-		ctrl := gomock.NewController(t)
-		defer ctrl.Finish()
-
-		var (
-			service      = service_mocks.NewMockServicer(ctrl)
-			idempotencer = idempotency_mocks.NewMockIdempotencer(ctrl)
-			handler      = aws.Handler{
-				Service:      service,
-				Idempotencer: idempotencer,
-			}
-			ctx   = log.WithServiceName(context.Background(), log.New("debug"), "test")
-			event = events.SQSEvent{
-				Records: []events.SQSMessage{{
-					Body: `{
-						"id": "tradeId",
-						"side": "buy",
-						"productId": "productId",
-						"funds": "1",
-						"fillFees": "2",
-						"filledSize": "3",
-						"executedValue": "4"
-					}`,
-				}},
-			}
-		)
-
-		idempotencer.EXPECT().Check(ctx, "tradeId").Return(true, nil)
 		service.EXPECT().StoreTrade(gomock.Any(), gomock.Any()).Times(0)
 
 		err := handler.StoreTrade(ctx, event)
@@ -168,11 +90,9 @@ func TestHandler_StoreTrade(t *testing.T) {
 		defer ctrl.Finish()
 
 		var (
-			service      = service_mocks.NewMockServicer(ctrl)
-			idempotencer = idempotency_mocks.NewMockIdempotencer(ctrl)
-			handler      = aws.Handler{
-				Service:      service,
-				Idempotencer: idempotencer,
+			service = service_mocks.NewMockServicer(ctrl)
+			handler = aws.Handler{
+				Service: service,
 			}
 			ctx   = log.WithServiceName(context.Background(), log.New("debug"), "test")
 			event = events.SQSEvent{
@@ -202,7 +122,6 @@ func TestHandler_StoreTrade(t *testing.T) {
 			}
 		)
 
-		idempotencer.EXPECT().Check(ctx, "tradeId").Return(false, nil)
 		service.EXPECT().StoreTrade(ctx, trade).Return(testErr)
 
 		err := handler.StoreTrade(ctx, event)
@@ -216,11 +135,9 @@ func TestHandler_StoreTrade(t *testing.T) {
 		defer ctrl.Finish()
 
 		var (
-			service      = service_mocks.NewMockServicer(ctrl)
-			idempotencer = idempotency_mocks.NewMockIdempotencer(ctrl)
-			handler      = aws.Handler{
-				Service:      service,
-				Idempotencer: idempotencer,
+			service = service_mocks.NewMockServicer(ctrl)
+			handler = aws.Handler{
+				Service: service,
 			}
 			ctx   = log.WithServiceName(context.Background(), log.New("debug"), "test")
 			event = events.SQSEvent{
@@ -249,7 +166,6 @@ func TestHandler_StoreTrade(t *testing.T) {
 			}
 		)
 
-		idempotencer.EXPECT().Check(ctx, "tradeId").Return(false, nil)
 		service.EXPECT().StoreTrade(ctx, trade).Return(nil)
 
 		err := handler.StoreTrade(ctx, event)
@@ -263,11 +179,9 @@ func TestHandler_StoreRate(t *testing.T) {
 		defer ctrl.Finish()
 
 		var (
-			service      = service_mocks.NewMockServicer(ctrl)
-			idempotencer = idempotency_mocks.NewMockIdempotencer(ctrl)
-			handler      = aws.Handler{
-				Service:      service,
-				Idempotencer: idempotencer,
+			service = service_mocks.NewMockServicer(ctrl)
+			handler = aws.Handler{
+				Service: service,
 			}
 			ctx = context.Background()
 		)
@@ -283,11 +197,9 @@ func TestHandler_StoreRate(t *testing.T) {
 		defer ctrl.Finish()
 
 		var (
-			service      = service_mocks.NewMockServicer(ctrl)
-			idempotencer = idempotency_mocks.NewMockIdempotencer(ctrl)
-			handler      = aws.Handler{
-				Service:      service,
-				Idempotencer: idempotencer,
+			service = service_mocks.NewMockServicer(ctrl)
+			handler = aws.Handler{
+				Service: service,
 			}
 			ctx   = context.Background()
 			event = events.SQSEvent{
@@ -297,72 +209,6 @@ func TestHandler_StoreRate(t *testing.T) {
 			}
 		)
 
-		idempotencer.EXPECT().Check(gomock.Any(), gomock.Any()).Times(0)
-		service.EXPECT().StoreRate(gomock.Any(), gomock.Any(), gomock.Any()).Times(0)
-
-		err := handler.StoreRate(ctx, event)
-		require.NoError(t, err)
-	})
-
-	t.Run("does not store trade if error checking idempotency", func(t *testing.T) {
-		ctrl := gomock.NewController(t)
-		defer ctrl.Finish()
-
-		var (
-			service      = service_mocks.NewMockServicer(ctrl)
-			idempotencer = idempotency_mocks.NewMockIdempotencer(ctrl)
-			handler      = aws.Handler{
-				Service:      service,
-				Idempotencer: idempotencer,
-			}
-			ctx            = log.WithServiceName(context.Background(), log.New("debug"), "test")
-			idempotencyKey = "idempotency key"
-			now            = time.Now().UTC().Format("2006-01-02T15:04:05Z")
-			event          = events.SQSEvent{
-				Records: []events.SQSMessage{{
-					Body: fmt.Sprintf(`{
-						"idempotencyKey": "%s",
-						"rate": 123.45,
-						"dateTime": "%s"
-					}`, idempotencyKey, now),
-				}},
-			}
-			testErr = errors.New("error")
-		)
-
-		idempotencer.EXPECT().Check(ctx, idempotencyKey).Return(false, testErr)
-		service.EXPECT().StoreRate(gomock.Any(), gomock.Any(), gomock.Any()).Times(0)
-
-		err := handler.StoreRate(ctx, event)
-		require.NoError(t, err)
-	})
-
-	t.Run("does not store trade if idempotency key exists", func(t *testing.T) {
-		ctrl := gomock.NewController(t)
-		defer ctrl.Finish()
-
-		var (
-			service      = service_mocks.NewMockServicer(ctrl)
-			idempotencer = idempotency_mocks.NewMockIdempotencer(ctrl)
-			handler      = aws.Handler{
-				Service:      service,
-				Idempotencer: idempotencer,
-			}
-			ctx            = log.WithServiceName(context.Background(), log.New("debug"), "test")
-			idempotencyKey = "idempotency key"
-			now            = time.Now().UTC().Format("2006-01-02T15:04:05Z")
-			event          = events.SQSEvent{
-				Records: []events.SQSMessage{{
-					Body: fmt.Sprintf(`{
-						"idempotencyKey": "%s",
-						"rate": 123.45,
-						"dateTime": "%s"
-					}`, idempotencyKey, now),
-				}},
-			}
-		)
-
-		idempotencer.EXPECT().Check(ctx, idempotencyKey).Return(true, nil)
 		service.EXPECT().StoreRate(gomock.Any(), gomock.Any(), gomock.Any()).Times(0)
 
 		err := handler.StoreRate(ctx, event)
@@ -374,11 +220,9 @@ func TestHandler_StoreRate(t *testing.T) {
 		defer ctrl.Finish()
 
 		var (
-			service      = service_mocks.NewMockServicer(ctrl)
-			idempotencer = idempotency_mocks.NewMockIdempotencer(ctrl)
-			handler      = aws.Handler{
-				Service:      service,
-				Idempotencer: idempotencer,
+			service = service_mocks.NewMockServicer(ctrl)
+			handler = aws.Handler{
+				Service: service,
 			}
 			ctx            = log.WithServiceName(context.Background(), log.New("debug"), "test")
 			idempotencyKey = "idempotency key"
@@ -396,7 +240,6 @@ func TestHandler_StoreRate(t *testing.T) {
 			testErr = errors.New("error")
 		)
 
-		idempotencer.EXPECT().Check(ctx, idempotencyKey).Return(false, nil)
 		service.EXPECT().StoreRate(ctx, rate, now).Return(testErr)
 
 		err := handler.StoreRate(ctx, event)
@@ -410,11 +253,9 @@ func TestHandler_StoreRate(t *testing.T) {
 		defer ctrl.Finish()
 
 		var (
-			service      = service_mocks.NewMockServicer(ctrl)
-			idempotencer = idempotency_mocks.NewMockIdempotencer(ctrl)
-			handler      = aws.Handler{
-				Service:      service,
-				Idempotencer: idempotencer,
+			service = service_mocks.NewMockServicer(ctrl)
+			handler = aws.Handler{
+				Service: service,
 			}
 			ctx            = log.WithServiceName(context.Background(), log.New("debug"), "test")
 			idempotencyKey = "idempotency key"
@@ -431,7 +272,6 @@ func TestHandler_StoreRate(t *testing.T) {
 			}
 		)
 
-		idempotencer.EXPECT().Check(ctx, idempotencyKey).Return(false, nil)
 		service.EXPECT().StoreRate(ctx, rate, now).Return(nil)
 
 		err := handler.StoreRate(ctx, event)

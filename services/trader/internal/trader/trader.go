@@ -30,6 +30,7 @@ type (
 	Coinbase interface {
 		CreateOrder(order *coinbasepro.Order) (coinbasepro.Order, error)
 		GetOrder(id string) (coinbasepro.Order, error)
+		GetAccounts() ([]coinbasepro.Account, error)
 	}
 
 	trader struct {

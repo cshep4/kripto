@@ -3,36 +3,18 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/aws/aws-sdk-go/service/sns"
 
-	"github.com/Netflix/go-env"
 	awsconfig "github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/sns"
 	"github.com/cshep4/kripto/services/trader/internal/handler/aws"
+	"github.com/cshep4/kripto/services/trader/internal/secrets"
 	"github.com/cshep4/kripto/services/trader/internal/service"
 	"github.com/cshep4/kripto/services/trader/internal/trader"
 	"github.com/cshep4/kripto/shared/go/lambda"
+	"github.com/cshep4/kripto/shared/go/log"
 	"github.com/preichenberger/go-coinbasepro/v2"
 )
-
-type environment struct {
-	CoinbasePro struct {
-		Key        string `env:"COINBASE_PRO_KEY"`
-		Passphrase string `env:"COINBASE_PRO_PASSPHRASE"`
-		Secret     string `env:"COINBASE_PRO_SECRET"`
-	}
-	CoinbaseProSandbox struct {
-		Key        string `env:"COINBASE_PRO_SANDBOX_KEY"`
-		Passphrase string `env:"COINBASE_PRO_SANDBOX_PASSPHRASE"`
-		Secret     string `env:"COINBASE_PRO_SANDBOX_SECRET"`
-	}
-	SNS struct {
-		Topic  string `env:"TOPIC"`
-		Region string `env:"REGION"`
-	}
-	MockTrade   bool   `env:"MOCK_TRADE"`
-	TradeAmount string `env:"TRADE_AMOUNT"`
-}
 
 var (
 	cfg = lambda.FunctionConfig{
@@ -47,7 +29,7 @@ var (
 
 	runner = lambda.New(
 		handler.Trade,
-		lambda.WithPreExecute(lambda.LogMiddleware(cfg.LogLevel, cfg.ServiceName, cfg.FunctionName)),
+		lambda.WithPreExecute(log.Middleware(cfg.LogLevel, cfg.ServiceName, cfg.FunctionName)),
 	)
 )
 
@@ -57,15 +39,15 @@ func main() {
 }
 
 func setup(ctx context.Context) error {
-	env, err := getEnv()
-	if err != nil {
+	var s secrets.Secrets
+	if err := s.Fetch(); err != nil {
 		return err
 	}
 
-	coinbaseClient := initCoinbaseProClient(env)
+	coinbaseClient := initCoinbaseProClient(s)
 
 	sess, err := session.NewSession(&awsconfig.Config{
-		Region: &env.SNS.Region,
+		Region: &s.SNS.Region,
 	})
 
 	publisher := sns.New(sess)
@@ -75,7 +57,7 @@ func setup(ctx context.Context) error {
 		return fmt.Errorf("initialise_trader: %w", err)
 	}
 
-	handler.Service, err = service.New(env.TradeAmount, env.SNS.Topic, publisher, trader)
+	handler.Service, err = service.New(s.TradeAmount, s.SNS.Topic, publisher, trader)
 	if err != nil {
 		return fmt.Errorf("initialise_service: %w", err)
 	}
@@ -83,39 +65,14 @@ func setup(ctx context.Context) error {
 	return nil
 }
 
-func getEnv() (environment, error) {
-	var e environment
-	_, err := env.UnmarshalFromEnviron(&e)
-	if err != nil {
-		return environment{}, fmt.Errorf("unmarshal_environment_variables: %w", err)
-	}
-	switch {
-	case !e.MockTrade && e.CoinbasePro.Key == "":
-		return environment{}, fmt.Errorf("missing_environment_variable: COINBASE_PRO_KEY")
-	case !e.MockTrade && e.CoinbasePro.Passphrase == "":
-		return environment{}, fmt.Errorf("missing_environment_variable: COINBASE_PRO_PASSPHRASE")
-	case !e.MockTrade && e.CoinbasePro.Secret == "":
-		return environment{}, fmt.Errorf("missing_environment_variable: COINBASE_PRO_SECRET")
-	case e.MockTrade && e.CoinbaseProSandbox.Key == "":
-		return environment{}, fmt.Errorf("missing_environment_variable: COINBASE_PRO_SANDBOX_KEY")
-	case e.MockTrade && e.CoinbaseProSandbox.Passphrase == "":
-		return environment{}, fmt.Errorf("missing_environment_variable: COINBASE_PRO_SANDBOX_PASSPHRASE")
-	case e.MockTrade && e.CoinbaseProSandbox.Secret == "":
-		return environment{}, fmt.Errorf("missing_environment_variable: COINBASE_PRO_SANDBOX_SECRET")
-	case e.TradeAmount == "":
-		return environment{}, fmt.Errorf("missing_environment_variable: TRADE_AMOUNT")
-	}
-	return e, err
-}
-
-func initCoinbaseProClient(env environment) *coinbasepro.Client {
+func initCoinbaseProClient(s secrets.Secrets) *coinbasepro.Client {
 	coinbaseClient := coinbasepro.NewClient()
-	if env.MockTrade {
+	if s.MockTrade {
 		coinbaseClient.UpdateConfig(&coinbasepro.ClientConfig{
 			BaseURL:    "https://api-public.sandbox.pro.coinbase.com",
-			Key:        env.CoinbaseProSandbox.Key,
-			Passphrase: env.CoinbaseProSandbox.Passphrase,
-			Secret:     env.CoinbaseProSandbox.Secret,
+			Key:        s.CoinbaseProSandbox.Key,
+			Passphrase: s.CoinbaseProSandbox.Passphrase,
+			Secret:     s.CoinbaseProSandbox.Secret,
 		})
 	}
 	return coinbaseClient

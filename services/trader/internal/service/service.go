@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/service/sns"
@@ -59,7 +60,7 @@ func (s *service) Trade(ctx context.Context, tradeType, amount string) error {
 	if amount == "" {
 		amount = s.amount
 	}
-	
+
 	order, err := s.trader.Trade(trader.TradeType(tradeType), amount)
 	if err != nil {
 		return fmt.Errorf("trade: %w", err)

@@ -1,21 +1,54 @@
 package lambda
 
-type option func(*Runner)
+const (
+	preExecute optionType = iota + 1
+	postExecute
+	errorHandle
+)
+
+type (
+	optionType uint
+
+	option struct {
+		optionType
+		apply func(*runner)
+	}
+)
 
 func WithPreExecute(e preExecutorFunc) option {
-	return func(r *Runner) {
-		r.Handler = &preExecutor{
-			before:  e,
-			handler: r.Handler,
-		}
+	return option{
+		optionType: preExecute,
+		apply: func(r *runner) {
+			r.Handler = &preExecutor{
+				runner:  r,
+				before:  e,
+				handler: r.Handler,
+			}
+		},
 	}
 }
 
 func WithPostExecute(e postExecutorFunc) option {
-	return func(r *Runner) {
-		r.Handler = &postExecutor{
-			after:   e,
-			handler: r.Handler,
-		}
+	return option{
+		optionType: postExecute,
+		apply: func(r *runner) {
+			r.Handler = &postExecutor{
+				runner:  r,
+				after:   e,
+				handler: r.Handler,
+			}
+		},
+	}
+}
+
+func WithErrorHandler(e errorHandlerFunc) option {
+	return option{
+		optionType: errorHandle,
+		apply: func(r *runner) {
+			r.Handler = &errorHandler{
+				errorHandler: e,
+				handler:      r.Handler,
+			}
+		},
 	}
 }
