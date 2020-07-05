@@ -138,7 +138,7 @@ functions:
       MONGO_URI: ${self:custom.secrets.mongoUri}
       MOCK_TRADE: true
   trade-decider:
-    runtime: python3.8
+    runtime: python3.7
     memorySize: 128
     timeout: 120
     module: services/trade-decider
