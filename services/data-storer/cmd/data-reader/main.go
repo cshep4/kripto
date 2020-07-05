@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/cshep4/kripto/shared/go/log"
+
 	"github.com/cshep4/kripto/services/data-storer/internal/handler/aws"
 	"github.com/cshep4/kripto/services/data-storer/internal/service"
 	rate "github.com/cshep4/kripto/services/data-storer/internal/store/rate/mongo"
@@ -12,26 +14,31 @@ import (
 	"github.com/cshep4/kripto/shared/go/mongodb"
 )
 
+const (
+	logLevel     = "info"
+	serviceName  = "data-storer"
+	functionName = "data-reader"
+)
+
 var (
 	cfg = lambda.FunctionConfig{
-		LogLevel:     "info",
-		ServiceName:  "data-storer",
-		FunctionName: "data-reader",
+		LogLevel:     logLevel,
+		ServiceName:  serviceName,
+		FunctionName: functionName,
 		Setup:        setup,
 		Initialised:  func() bool { return handler.Service != nil },
 	}
 
-	handler = &aws.Handler{}
+	handler aws.Handler
 
 	runner = lambda.New(
 		handler.Get,
-		lambda.WithPreExecute(lambda.LogMiddleware(cfg.LogLevel, cfg.ServiceName, cfg.FunctionName)),
+		lambda.WithPreExecute(log.Middleware(logLevel, serviceName, functionName)),
 	)
 )
 
 func main() {
-	lambda.Init(cfg)
-	runner.Start()
+	runner.Start(cfg)
 }
 
 func setup(ctx context.Context) error {

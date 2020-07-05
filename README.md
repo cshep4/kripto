@@ -14,10 +14,11 @@ Kripto ₿ trading platform, periodically checks the BTC-GBP exchange rate using
 | ------------------------------------------------------- | --------------------------------------------- | ------------- | ------------------ | -------------------------------------------------------------------------------------- |
 | [rate-retriever](./services/rate-retriever)             | [rate-retriever](./services/rate-retriever)   | Node.js       | Schedule           | Retrieves the BTC-GBP exchange rate from Coinbase and publishes result to SNS.         |
 | [trade](./services/trader/cmd/trade)                    | [trader](./services/trader)                   | Go            | Invocation         | Calls Coinbase Pro to make a BTC-GBP trade and publishes result to SNS.                |
+| [get-wallet](./services/trader/cmd/get-wallet)          | [trader](./services/trader)                   | Go            | Invocation         | Calls Coinbase Pro to get accounts & balances.                                         |
 | [rate-writer](./services/data-storer/cmd/rate-writer)   | [data-storer](./services/data-storer)         | Go            | SQS                | Stores a trade in the database.                                                        |
 | [trade-writer](./services/data-storer/cmd/trade-writer) | [data-storer](./services/data-storer)         | Go            | SQS                | Stores a rate in the database.                                                         |
 | [data-reader](./services/data-storer/cmd/data-reader)   | [data-storer](./services/data-storer)         | Go            | Invocation         | Gets the previous week's rates from the database and returns in the response.          |
-| [trade-decider](./services/trade-decider)               | [trade-decider](./services/trade-decider)     | Python        | SQS                | Makes an intelligent decision whether or not to trade BTC-GBP based on historic rates. |
+| [trade-decider](./services/trade-decider)               | [trade-decider](./services/trade-decider)     | Python        | Schedule           | Makes an intelligent decision whether or not to trade BTC-GBP based on historic rates. |
 | [receipt-emailer](./services/receipt-emailer)           | [receipt-emailer](./services/receipt-emailer) | Java          | SQS                | Sends an email receipt containing all the details of the trade.                        |
 
 ### Rate Retriever ₿↔￡
@@ -25,7 +26,7 @@ Kripto ₿ trading platform, periodically checks the BTC-GBP exchange rate using
 - **Language** - JavaScript
 - **Runtime** - nodejs12.x
 - **Event** - Scheduled - every minute
-- **Services** - AWS Lambda, Serverless, SQS (Producer), Coinbase API
+- **Services** - AWS Lambda, Serverless, SNS (Publisher), Coinbase API
 
 ##### Request
     {}
@@ -38,16 +39,44 @@ Kripto ₿ trading platform, periodically checks the BTC-GBP exchange rate using
 - **Language** - Go
 - **Runtime** - go1.x
 - **Event** - Invocation
-- **Services** - AWS Lambda, Serverless, SQS (Producer), Coinbase Pro API
+- **Services** - AWS Lambda, Serverless, SNS (Publisher), Coinbase Pro API
+- **Idempotency** - `idempotencyKey` sent in request payload
 
 ##### Request
     {
+        "idempotencyKey": "aa368788-bb4f-40c0-b80f-afcfdaf18574",
         "tradeType": "buy",
         "amount": "10.00"
     }
 
 ##### Response 
     {}
+    
+### Get Wallet 🏦
+
+- **Language** - Go
+- **Runtime** - go1.x
+- **Event** - Invocation
+- **Services** - AWS Lambda, Serverless, Coinbase Pro API
+
+##### Request
+    {}
+
+##### Response
+    {
+        "gbp": {
+            "id": "423e4c86-f9cc-4e9f-9ddd-03756fdaaefc",
+            "balance": 0.10107396,
+            "hold": 0,
+            "available": 0.10107396
+        },
+        "btc": {
+            "id": "8eef875f-0670-4d31-9952-d59f85e7a215",
+            "balance": 0.0026355,
+            "hold": 0,
+            "available": 0.0026355
+        }
+    }
 
 ### Rate Writer 💰
 
@@ -55,11 +84,10 @@ Kripto ₿ trading platform, periodically checks the BTC-GBP exchange rate using
 - **Runtime** - go1.x
 - **Event** - SQS - `RateUpdate` queue
 - **Services** - AWS Lambda, Serverless, SQS (Consumer), MongoDB
-- **Idempotency** - `idempotencyKey` sent in message payload
+- **Idempotency** - SQS `messageId` used as idempotency key
 
 ##### Request
     {
-        "idempotencyKey": "aa368788-bb4f-40c0-b80f-afcfdaf18574",
         "rate": "8012.92",
         "dateTime": "2020-05-19T19:39:00"
     }
@@ -73,7 +101,7 @@ Kripto ₿ trading platform, periodically checks the BTC-GBP exchange rate using
 - **Runtime** - go1.x
 - **Event** - SQS - `Trade` queue
 - **Services** - AWS Lambda, Serverless, SQS (Consumer), MongoDB
-- **Idempotency** - trade ID (`id`) in message payload used as idempotency key
+- **Idempotency** - SQS `messageId` used as idempotency key
 
 ##### Request
     {
@@ -116,13 +144,11 @@ Kripto ₿ trading platform, periodically checks the BTC-GBP exchange rate using
 
 - **Language** - Python
 - **Runtime** - python3.8
-- **Event** - SQS - `InitiateTrade` queue
+- **Event** - Scheduled - every minute
 - **Services** - AWS Lambda, Serverless, SQS (Consumer)
-- **Idempotency** - `idempotencyKey` sent in message payload
 
 ##### Request
     {
-        "idempotencyKey": "aa368788-bb4f-40c0-b80f-afcfdaf18574",
         "rate": "8012.92",
         "dateTime": "2020-05-19T19:39:00"
     }
@@ -193,7 +219,6 @@ Kripto ₿ trading platform, periodically checks the BTC-GBP exchange rate using
 
 ##### Payload
     {
-        "idempotencyKey": "aa368788-bb4f-40c0-b80f-afcfdaf18574",
         "rate": "8012.92",
         "dateTime": "2020-05-19T19:39:00"
     }

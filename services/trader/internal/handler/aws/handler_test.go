@@ -13,6 +13,60 @@ import (
 )
 
 func TestHandler_Trade(t *testing.T) {
+	t.Run("returns error if tradeType is empty", func(t *testing.T) {
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		var (
+			ctx     = context.Background()
+			handler = aws.Handler{}
+		)
+
+		err := handler.Trade(ctx, aws.TradeRequest{})
+		require.Error(t, err)
+
+		brErr, ok := err.(aws.BadRequestError)
+		assert.True(t, ok)
+		assert.Equal(t, "tradeType", brErr.Parameter)
+		assert.Equal(t, "empty", brErr.Err)
+	})
+
+	t.Run("returns error if tradeType is invalid", func(t *testing.T) {
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		var (
+			ctx     = context.Background()
+			handler = aws.Handler{}
+		)
+
+		err := handler.Trade(ctx, aws.TradeRequest{TradeType: "invalid"})
+		require.Error(t, err)
+
+		brErr, ok := err.(aws.BadRequestError)
+		assert.True(t, ok)
+		assert.Equal(t, "tradeType", brErr.Parameter)
+		assert.Equal(t, "invalid value - should be either buy/sell", brErr.Err)
+	})
+
+	t.Run("returns error if amount is empty", func(t *testing.T) {
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		var (
+			ctx     = context.Background()
+			handler = aws.Handler{}
+		)
+
+		err := handler.Trade(ctx, aws.TradeRequest{TradeType: "buy"})
+		require.Error(t, err)
+
+		brErr, ok := err.(aws.BadRequestError)
+		assert.True(t, ok)
+		assert.Equal(t, "amount", brErr.Parameter)
+		assert.Equal(t, "empty", brErr.Err)
+	})
+
 	t.Run("returns error if error making trade", func(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()

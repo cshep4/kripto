@@ -1,6 +1,7 @@
 import logging
 import json
 import os
+import uuid
 
 
 class Trader:
@@ -14,5 +15,5 @@ class Trader:
         self.client.invoke(
             FunctionName=os.environ['TRADER_FUNCTION_NAME'],
             InvocationType='Event',
-            Payload=json.dumps({"tradeType": trade_type, "amount": str(amount)})
+            Payload=json.dumps({"tradeType": trade_type, "amount": str(amount), "idempotencyKey": str(uuid.uuid4())})
         )

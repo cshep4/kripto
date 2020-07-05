@@ -2,6 +2,7 @@ package trader
 
 import (
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/preichenberger/go-coinbasepro/v2"
@@ -27,9 +28,18 @@ type (
 		ExecutedValue string    `json:"executedValue,omitempty"` // Value in GBP.
 	}
 
+	Account struct {
+		ID        string
+		Balance   float32
+		Hold      float32
+		Available float32
+		Currency  string
+	}
+
 	Coinbase interface {
 		CreateOrder(order *coinbasepro.Order) (coinbasepro.Order, error)
 		GetOrder(id string) (coinbasepro.Order, error)
+		GetAccounts() ([]coinbasepro.Account, error)
 	}
 
 	trader struct {
@@ -85,4 +95,37 @@ func (t *trader) Trade(tradeType TradeType, amount string) (*TradeResponse, erro
 		FilledSize:    order.FilledSize,
 		ExecutedValue: order.ExecutedValue,
 	}, nil
+}
+
+func (t *trader) GetAccounts() ([]Account, error) {
+	res, err := t.coinbase.GetAccounts()
+	if err != nil {
+		return nil, fmt.Errorf("get_accounts: %w", err)
+	}
+
+	accounts := make([]Account, len(res))
+	for i, a := range res {
+		balance, err := strconv.ParseFloat(a.Balance, 32)
+		if err != nil {
+			return nil, fmt.Errorf("invalid_%s_balance (%s): %w", a.Currency, a.Balance, err)
+		}
+		hold, err := strconv.ParseFloat(a.Hold, 32)
+		if err != nil {
+			return nil, fmt.Errorf("invalid_%s_hold (%s): %w", a.Currency, a.Hold, err)
+		}
+		available, err := strconv.ParseFloat(a.Available, 32)
+		if err != nil {
+			return nil, fmt.Errorf("invalid_%s_available (%s): %w", a.Currency, a.Available, err)
+		}
+
+		accounts[i] = Account{
+			ID:        a.ID,
+			Balance:   float32(balance),
+			Hold:      float32(hold),
+			Available: float32(available),
+			Currency:  a.Currency,
+		}
+	}
+
+	return accounts, nil
 }
