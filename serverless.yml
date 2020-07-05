@@ -143,8 +143,15 @@ functions:
     module: services/trade-decider
     handler: app.handler
     package:
+      exclude:
+        - services/trade-decider/env/**
       include:
-        - "*/**"
+        - services/trade-decider/decision
+        - services/trade-decider/rate
+        - services/trade-decider/trade
+        - services/trade-decider/wallet
+        - services/trade-decider/requirements.txt
+        - services/trade-decider/app.py
     environment:
       GET_WALLET_FUNCTION_NAME: "${self:provider.profile}-${self:provider.stage}-get-wallet"
       READER_FUNCTION_NAME: "${self:provider.profile}-${self:provider.stage}-data-reader"
