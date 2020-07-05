@@ -3,6 +3,7 @@ package aws
 import (
 	"context"
 	"fmt"
+	"github.com/cshep4/kripto/services/trader/internal/model"
 
 	"github.com/cshep4/kripto/shared/go/log"
 )
@@ -10,6 +11,7 @@ import (
 type (
 	Servicer interface {
 		Trade(ctx context.Context, tradeType, amount string) error
+		GetWallet(ctx context.Context) (*model.Wallet, error)
 	}
 
 	Handler struct {
@@ -17,21 +19,32 @@ type (
 	}
 
 	// InvalidParameterError is returned when a required parameter passed to New is invalid.
-	InvalidParameterError struct {
+	BadRequestError struct {
 		Parameter string
+		Err       string
 	}
 
 	TradeRequest struct {
-		TradeType string `json:"tradeType"`
-		Amount    string `json:"amount"`
+		IdempotencyKey string `json:"idempotencyKey"`
+		TradeType      string `json:"tradeType"`
+		Amount         string `json:"amount"`
 	}
 )
 
-func (i InvalidParameterError) Error() string {
-	return fmt.Sprintf("invalid parameter %s", i.Parameter)
+func (i BadRequestError) Error() string {
+	return fmt.Sprintf("bad request - param: %s, error: %s", i.Parameter, i.Err)
 }
 
 func (h *Handler) Trade(ctx context.Context, req TradeRequest) error {
+	switch {
+	case req.TradeType == "":
+		return BadRequestError{Parameter: "tradeType", Err: "empty"}
+	case req.TradeType != "buy" && req.TradeType != "sell":
+		return BadRequestError{Parameter: "tradeType", Err: "invalid value - should be either buy/sell"}
+	case req.Amount == "":
+		return BadRequestError{Parameter: "amount", Err: "empty"}
+	}
+
 	err := h.Service.Trade(ctx, req.TradeType, req.Amount)
 	if err != nil {
 		log.Error(ctx, "error_trading",
@@ -43,4 +56,14 @@ func (h *Handler) Trade(ctx context.Context, req TradeRequest) error {
 	}
 
 	return nil
+}
+
+func (h *Handler) GetWallet(ctx context.Context) (*model.Wallet, error) {
+	wallet, err := h.Service.GetWallet(ctx)
+	if err != nil {
+		log.Error(ctx, "error_getting_wallet", log.ErrorParam(err))
+		return nil, fmt.Errorf("get_wallet: %w", err)
+	}
+
+	return wallet, nil
 }

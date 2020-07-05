@@ -46,6 +46,7 @@ func WithErrorHandler(e errorHandlerFunc) option {
 		optionType: errorHandle,
 		apply: func(r *runner) {
 			r.Handler = &errorHandler{
+				runner:       r,
 				errorHandler: e,
 				handler:      r.Handler,
 			}

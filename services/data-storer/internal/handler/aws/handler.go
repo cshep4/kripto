@@ -102,7 +102,6 @@ func (h *Handler) StoreRate(ctx context.Context, sqsEvent events.SQSEvent) error
 			log.Error(ctx, "error_storing_rate",
 				log.SafeParam("rate", req.Rate),
 				log.SafeParam("dateTime", req.DateTime),
-				log.SafeParam("key", req.IdempotencyKey),
 				log.ErrorParam(err),
 			)
 			return err

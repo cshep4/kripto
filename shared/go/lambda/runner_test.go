@@ -33,11 +33,11 @@ func TestRunner_Invoke(t *testing.T) {
 		)
 
 		gomock.InOrder(
-			first.EXPECT().Invoke(ctx, payload).Return([]byte{}, nil),
-			second.EXPECT().Invoke(ctx, payload).Return([]byte{}, nil),
-			third.EXPECT().Invoke(ctx, payload).Return([]byte{}, nil),
-			fourth.EXPECT().Invoke(ctx, payload).Return([]byte{}, nil),
-			fifth.EXPECT().Invoke(ctx, payload).Return([]byte{}, nil),
+			first.EXPECT().Invoke(gomock.Any(), payload).Return([]byte{}, nil),
+			second.EXPECT().Invoke(gomock.Any(), payload).Return([]byte{}, nil),
+			third.EXPECT().Invoke(gomock.Any(), payload).Return([]byte{}, nil),
+			fourth.EXPECT().Invoke(gomock.Any(), payload).Return([]byte{}, nil),
+			fifth.EXPECT().Invoke(gomock.Any(), payload).Return([]byte{}, nil),
 		)
 
 		runner := lambda.New(
@@ -67,8 +67,8 @@ func TestRunner_Invoke(t *testing.T) {
 			function = func() ([]byte, error) { return second.Invoke(ctx, payload) }
 		)
 
-		first.EXPECT().Invoke(ctx, payload).Return(nil, testErr)
-		second.EXPECT().Invoke(ctx, payload).Times(0)
+		first.EXPECT().Invoke(gomock.Any(), payload).Return(nil, testErr)
+		second.EXPECT().Invoke(gomock.Any(), payload).Times(0)
 
 		runner := lambda.New(
 			function,
@@ -126,8 +126,8 @@ func TestRunner_Invoke(t *testing.T) {
 		)
 
 		gomock.InOrder(
-			first.EXPECT().Invoke(ctx, payload).Return(nil, nil),
-			second.EXPECT().Invoke(ctx, payload).Return(nil, testErr),
+			first.EXPECT().Invoke(gomock.Any(), payload).Return(nil, nil),
+			second.EXPECT().Invoke(gomock.Any(), payload).Return(nil, testErr),
 		)
 
 		runner := lambda.New(
@@ -159,9 +159,9 @@ func TestRunner_Invoke(t *testing.T) {
 		)
 
 		gomock.InOrder(
-			first.EXPECT().Invoke(ctx, payload).Return(nil, nil),
-			second.EXPECT().Invoke(ctx, payload).Return(response, nil),
-			third.EXPECT().Invoke(ctx, payload).Return(nil, nil),
+			first.EXPECT().Invoke(gomock.Any(), payload).Return(nil, nil),
+			second.EXPECT().Invoke(gomock.Any(), payload).Return(response, nil),
+			third.EXPECT().Invoke(gomock.Any(), payload).Return(nil, nil),
 		)
 
 		runner := lambda.New(
@@ -231,8 +231,8 @@ func TestRunner_Invoke(t *testing.T) {
 			}
 		)
 
-		first.EXPECT().Invoke(ctx, payload).Return(nil, nil)
-		second.EXPECT().Invoke(ctx, payload).Return(nil, nil).Times(0)
+		first.EXPECT().Invoke(gomock.Any(), payload).Return(nil, nil)
+		second.EXPECT().Invoke(gomock.Any(), payload).Return(nil, nil).Times(0)
 
 		runner := lambda.New(
 			function,
@@ -266,14 +266,51 @@ func TestRunner_Invoke(t *testing.T) {
 			}
 		)
 
-		first.EXPECT().Invoke(ctx, payload).Return(nil, nil)
-		second.EXPECT().Invoke(ctx, payload).Return(nil, nil).Times(0)
-		third.EXPECT().Invoke(ctx, payload).Return(nil, nil).Times(0)
+		first.EXPECT().Invoke(gomock.Any(), payload).Return(nil, nil)
+		second.EXPECT().Invoke(gomock.Any(), payload).Return(nil, nil).Times(0)
+		third.EXPECT().Invoke(gomock.Any(), payload).Return(nil, nil).Times(0)
 
 		runner := lambda.New(
 			function,
 			lambda.WithPreExecute(preExecutor),
 			lambda.WithPostExecute(postExecutorFunc(third)),
+		)
+
+		resp, err := runner.Invoke(ctx, payload)
+		require.NoError(t, err)
+
+		assert.Equal(t, response, resp)
+	})
+
+	t.Run("done breaks execution and returns payload without running error handler", func(t *testing.T) {
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		var (
+			first  = aws_mocks.NewMockHandler(ctrl)
+			second = aws_mocks.NewMockHandler(ctrl)
+			third  = aws_mocks.NewMockHandler(ctrl)
+
+			ctx      = context.Background()
+			payload  = []byte{1}
+			response = []byte{2}
+
+			function    = func() ([]byte, error) { return second.Invoke(ctx, payload) }
+			preExecutor = func(ctx context.Context, payload []byte) (bool, context.Context, []byte, error) {
+				_, err := first.Invoke(ctx, payload)
+				require.NoError(t, err)
+				return true, ctx, response, nil
+			}
+		)
+
+		first.EXPECT().Invoke(gomock.Any(), payload).Return(nil, nil)
+		second.EXPECT().Invoke(gomock.Any(), payload).Return(nil, nil).Times(0)
+		third.EXPECT().Invoke(gomock.Any(), payload).Return(nil, nil).Times(0)
+
+		runner := lambda.New(
+			function,
+			lambda.WithPreExecute(preExecutor),
+			lambda.WithErrorHandler(errorHandlerFunc(third)),
 		)
 
 		resp, err := runner.Invoke(ctx, payload)
@@ -301,20 +338,20 @@ func TestRunner_Invoke(t *testing.T) {
 		)
 
 		gomock.InOrder(
-			first.EXPECT().Invoke(ctx, payload).Return([]byte{}, nil),
-			second.EXPECT().Invoke(ctx, payload).Return([]byte{}, nil),
-			third.EXPECT().Invoke(ctx, payload).Return(nil, testErr),
-			fifth.EXPECT().Invoke(ctx, payload).Return([]byte{}, nil),
+			first.EXPECT().Invoke(gomock.Any(), payload).Return([]byte{}, nil),
+			second.EXPECT().Invoke(gomock.Any(), payload).Return([]byte{}, nil),
+			third.EXPECT().Invoke(gomock.Any(), payload).Return(nil, testErr),
+			fifth.EXPECT().Invoke(gomock.Any(), payload).Return([]byte{}, nil),
 		)
 
-		fourth.EXPECT().Invoke(ctx, payload).Times(0)
+		fourth.EXPECT().Invoke(gomock.Any(), payload).Times(0)
 
 		runner := lambda.New(
 			function,
 			lambda.WithPreExecute(preExecutorFunc(second)),
 			lambda.WithPreExecute(preExecutorFunc(first)),
 			lambda.WithPostExecute(postExecutorFunc(fourth)),
-			lambda.WithErrorHandler(errorHandlerFunc(fifth, payload)),
+			lambda.WithErrorHandler(errorHandlerFunc(fifth)),
 			lambda.WithPostExecute(postExecutorFunc(fourth)),
 		)
 
@@ -343,20 +380,20 @@ func TestRunner_Invoke(t *testing.T) {
 		)
 
 		gomock.InOrder(
-			first.EXPECT().Invoke(ctx, payload).Return([]byte{}, nil),
-			second.EXPECT().Invoke(ctx, payload).Return(nil, testErr),
-			fifth.EXPECT().Invoke(ctx, payload).Return([]byte{}, nil),
+			first.EXPECT().Invoke(gomock.Any(), payload).Return([]byte{}, nil),
+			second.EXPECT().Invoke(gomock.Any(), payload).Return(nil, testErr),
+			fifth.EXPECT().Invoke(gomock.Any(), payload).Return([]byte{}, nil),
 		)
 
-		third.EXPECT().Invoke(ctx, payload).Times(0)
-		fourth.EXPECT().Invoke(ctx, payload).Times(0)
+		third.EXPECT().Invoke(gomock.Any(), payload).Times(0)
+		fourth.EXPECT().Invoke(gomock.Any(), payload).Times(0)
 
 		runner := lambda.New(
 			function,
 			lambda.WithPreExecute(preExecutorFunc(second)),
 			lambda.WithPreExecute(preExecutorFunc(first)),
 			lambda.WithPostExecute(postExecutorFunc(fourth)),
-			lambda.WithErrorHandler(errorHandlerFunc(fifth, payload)),
+			lambda.WithErrorHandler(errorHandlerFunc(fifth)),
 			lambda.WithPostExecute(postExecutorFunc(fourth)),
 		)
 
@@ -385,11 +422,11 @@ func TestRunner_Invoke(t *testing.T) {
 		)
 
 		gomock.InOrder(
-			first.EXPECT().Invoke(ctx, payload).Return([]byte{}, nil),
-			second.EXPECT().Invoke(ctx, payload).Return([]byte{}, nil),
-			third.EXPECT().Invoke(ctx, payload).Return([]byte{}, nil),
-			fourth.EXPECT().Invoke(ctx, payload).Return(nil, testErr),
-			fifth.EXPECT().Invoke(ctx, payload).Return([]byte{}, nil),
+			first.EXPECT().Invoke(gomock.Any(), payload).Return([]byte{}, nil),
+			second.EXPECT().Invoke(gomock.Any(), payload).Return([]byte{}, nil),
+			third.EXPECT().Invoke(gomock.Any(), payload).Return([]byte{}, nil),
+			fourth.EXPECT().Invoke(gomock.Any(), payload).Return(nil, testErr),
+			fifth.EXPECT().Invoke(gomock.Any(), payload).Return([]byte{}, nil),
 		)
 
 		runner := lambda.New(
@@ -397,7 +434,7 @@ func TestRunner_Invoke(t *testing.T) {
 			lambda.WithPreExecute(preExecutorFunc(second)),
 			lambda.WithPreExecute(preExecutorFunc(first)),
 			lambda.WithPostExecute(postExecutorFunc(fourth)),
-			lambda.WithErrorHandler(errorHandlerFunc(fifth, payload)),
+			lambda.WithErrorHandler(errorHandlerFunc(fifth)),
 		)
 
 		_, err := runner.Invoke(ctx, payload)
@@ -425,18 +462,18 @@ func TestRunner_Invoke(t *testing.T) {
 		)
 
 		gomock.InOrder(
-			first.EXPECT().Invoke(ctx, payload).Return([]byte{}, nil),
-			second.EXPECT().Invoke(ctx, payload).Return([]byte{}, nil),
-			third.EXPECT().Invoke(ctx, payload).Return([]byte{}, nil),
-			fourth.EXPECT().Invoke(ctx, payload).Return(nil, testErr),
-			fifth.EXPECT().Invoke(ctx, payload).Return([]byte{}, nil),
+			first.EXPECT().Invoke(gomock.Any(), payload).Return([]byte{}, nil),
+			second.EXPECT().Invoke(gomock.Any(), payload).Return([]byte{}, nil),
+			third.EXPECT().Invoke(gomock.Any(), payload).Return([]byte{}, nil),
+			fourth.EXPECT().Invoke(gomock.Any(), payload).Return(nil, testErr),
+			fifth.EXPECT().Invoke(gomock.Any(), payload).Return([]byte{}, nil),
 		)
 
 		runner := lambda.New(
 			function,
 			lambda.WithPreExecute(preExecutorFunc(second)),
 			lambda.WithPreExecute(preExecutorFunc(first)),
-			lambda.WithErrorHandler(errorHandlerFunc(fifth, payload)),
+			lambda.WithErrorHandler(errorHandlerFunc(fifth)),
 			lambda.WithPostExecute(postExecutorFunc(fourth)),
 		)
 
@@ -465,17 +502,17 @@ func TestRunner_Invoke(t *testing.T) {
 		)
 
 		gomock.InOrder(
-			first.EXPECT().Invoke(ctx, payload).Return([]byte{}, nil),
-			second.EXPECT().Invoke(ctx, payload).Return([]byte{}, nil),
-			third.EXPECT().Invoke(ctx, payload).Return([]byte{}, nil),
-			fourth.EXPECT().Invoke(ctx, payload).Return(nil, testErr),
-			fifth.EXPECT().Invoke(ctx, payload).Return([]byte{}, nil),
+			first.EXPECT().Invoke(gomock.Any(), payload).Return([]byte{}, nil),
+			second.EXPECT().Invoke(gomock.Any(), payload).Return([]byte{}, nil),
+			third.EXPECT().Invoke(gomock.Any(), payload).Return([]byte{}, nil),
+			fourth.EXPECT().Invoke(gomock.Any(), payload).Return(nil, testErr),
+			fifth.EXPECT().Invoke(gomock.Any(), payload).Return([]byte{}, nil),
 		)
 
 		runner := lambda.New(
 			function,
 			lambda.WithPreExecute(preExecutorFunc(first)),
-			lambda.WithErrorHandler(errorHandlerFunc(fifth, payload)),
+			lambda.WithErrorHandler(errorHandlerFunc(fifth)),
 		)
 
 		runner.Apply(
@@ -507,20 +544,20 @@ func TestRunner_Invoke(t *testing.T) {
 		)
 
 		gomock.InOrder(
-			first.EXPECT().Invoke(ctx, payload).Return([]byte{}, nil),
-			second.EXPECT().Invoke(ctx, payload).Return([]byte{}, nil),
-			third.EXPECT().Invoke(ctx, payload).Return([]byte{}, nil),
-			fourth.EXPECT().Invoke(ctx, payload).Return([]byte{}, nil),
+			first.EXPECT().Invoke(gomock.Any(), payload).Return([]byte{}, nil),
+			second.EXPECT().Invoke(gomock.Any(), payload).Return([]byte{}, nil),
+			third.EXPECT().Invoke(gomock.Any(), payload).Return([]byte{}, nil),
+			fourth.EXPECT().Invoke(gomock.Any(), payload).Return([]byte{}, nil),
 		)
 
-		fifth.EXPECT().Invoke(ctx, payload).Times(0)
+		fifth.EXPECT().Invoke(gomock.Any(), payload).Times(0)
 
 		runner := lambda.New(
 			function,
 			lambda.WithPreExecute(preExecutorFunc(second)),
 			lambda.WithPreExecute(preExecutorFunc(first)),
 			lambda.WithPostExecute(postExecutorFunc(fourth)),
-			lambda.WithErrorHandler(errorHandlerFunc(fifth, payload)),
+			lambda.WithErrorHandler(errorHandlerFunc(fifth)),
 		)
 
 		_, err := runner.Invoke(ctx, payload)
@@ -528,8 +565,8 @@ func TestRunner_Invoke(t *testing.T) {
 	})
 }
 
-func errorHandlerFunc(h aws.Handler, payload []byte) func(ctx context.Context, err error) {
-	return func(ctx context.Context, err error) {
+func errorHandlerFunc(h aws.Handler) func(ctx context.Context, payload []byte, err error) {
+	return func(ctx context.Context, payload []byte, err error) {
 		h.Invoke(ctx, payload)
 	}
 }
@@ -541,8 +578,8 @@ func preExecutorFunc(h aws.Handler) func(ctx context.Context, payload []byte) (b
 	}
 }
 
-func postExecutorFunc(h aws.Handler) func(ctx context.Context, payload []byte) error {
-	return func(ctx context.Context, payload []byte) error {
+func postExecutorFunc(h aws.Handler) func(ctx context.Context, payload, res []byte) error {
+	return func(ctx context.Context, payload, res []byte) error {
 		_, err := h.Invoke(ctx, payload)
 		return err
 	}

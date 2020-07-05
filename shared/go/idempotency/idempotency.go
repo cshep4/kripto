@@ -14,7 +14,6 @@ import (
 
 const (
 	fourDays             = int32(345600)
-	collection           = "idempotency"
 	maxIdempotencyChecks = 5
 
 	InProgress State = "in_progress"
@@ -49,8 +48,8 @@ type (
 	}
 
 	mongoIdempotencer struct {
-		database string
-		client   *mongo.Client
+		client     *mongo.Client
+		collection *mongo.Collection
 	}
 
 	// InvalidParameterError is returned when a required parameter passed to New is invalid.
@@ -72,8 +71,8 @@ func New(ctx context.Context, database string, client *mongo.Client) (*mongoIdem
 	}
 
 	i := &mongoIdempotencer{
-		database: database,
-		client:   client,
+		client:     client,
+		collection: client.Database(database).Collection("idempotency"),
 	}
 
 	if err := i.ping(ctx); err != nil {
@@ -88,22 +87,21 @@ func New(ctx context.Context, database string, client *mongo.Client) (*mongoIdem
 }
 
 func (m *mongoIdempotencer) ensureIndexes(ctx context.Context) error {
-	_, err := m.client.
-		Database(m.database).
-		Collection(collection).
-		Indexes().CreateOne(
-		ctx,
-		mongo.IndexModel{
-			Keys: bsonx.Doc{
-				{Key: "createdAt", Value: bsonx.Int64(1)},
+	_, err := m.collection.
+		Indexes().
+		CreateOne(
+			ctx,
+			mongo.IndexModel{
+				Keys: bsonx.Doc{
+					{Key: "createdAt", Value: bsonx.Int64(1)},
+				},
+				Options: options.Index().
+					SetName("createdAtIdx").
+					SetUnique(true).
+					SetBackground(true).
+					SetExpireAfterSeconds(fourDays),
 			},
-			Options: options.Index().
-				SetName("createdAtIdx").
-				SetUnique(true).
-				SetBackground(true).
-				SetExpireAfterSeconds(fourDays),
-		},
-	)
+		)
 	if err != nil {
 		return err
 	}
@@ -129,7 +127,7 @@ func (m *mongoIdempotencer) Check(ctx context.Context, key string) (*Response, e
 	if doc.State == InProgress {
 		doc, err = m.waitForResponse(ctx, key)
 		if err != nil {
-			return nil, fmt.Errorf("wait_for_response: %w", err)
+			return nil, err
 		}
 	}
 
@@ -155,7 +153,7 @@ func (m *mongoIdempotencer) waitForResponse(ctx context.Context, key string) (*i
 		case <-ticker.C:
 			doc, err := m.get(ctx, key)
 			if err != nil {
-				return nil, fmt.Errorf("get: %w", err)
+				return nil, fmt.Errorf("wait_for_response: get: %w", err)
 			}
 			if doc.State != InProgress {
 				return doc, err
@@ -168,9 +166,7 @@ func (m *mongoIdempotencer) waitForResponse(ctx context.Context, key string) (*i
 
 func (m *mongoIdempotencer) get(ctx context.Context, key string) (*idempotencyDoc, error) {
 	var doc idempotencyDoc
-	err := m.client.
-		Database(m.database).
-		Collection(collection).
+	err := m.collection.
 		FindOne(ctx, bson.D{{Key: "_id", Value: key}}).
 		Decode(&doc)
 
@@ -187,9 +183,7 @@ func (m *mongoIdempotencer) get(ctx context.Context, key string) (*idempotencyDo
 }
 
 func (m *mongoIdempotencer) store(ctx context.Context, key string) error {
-	_, err := m.client.
-		Database(m.database).
-		Collection(collection).
+	_, err := m.collection.
 		InsertOne(ctx, &idempotencyDoc{
 			Id:        key,
 			State:     InProgress,
@@ -226,9 +220,7 @@ func (m *mongoIdempotencer) MarkError(ctx context.Context, key string, err error
 }
 
 func (m *mongoIdempotencer) update(ctx context.Context, key string, update bson.D) error {
-	res, err := m.client.
-		Database(m.database).
-		Collection(collection).
+	res, err := m.collection.
 		UpdateOne(ctx, bson.D{{Key: "_id", Value: key}}, update)
 	if err != nil {
 		return fmt.Errorf("update_one: %w", err)

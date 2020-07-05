@@ -2,40 +2,42 @@ package lambda
 
 import (
 	"context"
-
 	"github.com/aws/aws-lambda-go/lambda"
 )
 
 type (
 	preExecutorFunc  func(ctx context.Context, payload []byte) (bool, context.Context, []byte, error)
-	postExecutorFunc func(ctx context.Context, payload []byte) error
-	errorHandlerFunc func(ctx context.Context, err error)
+	postExecutorFunc func(ctx context.Context, payload, response []byte) error
+	errorHandlerFunc func(ctx context.Context, payload []byte, err error)
 
 	preExecutor struct {
+		handler lambda.Handler
 		runner  *runner
 		before  preExecutorFunc
-		handler lambda.Handler
 	}
 
 	postExecutor struct {
+		handler lambda.Handler
 		runner  *runner
 		after   postExecutorFunc
-		handler lambda.Handler
 	}
 
 	errorHandler struct {
-		errorHandler errorHandlerFunc
 		handler      lambda.Handler
+		runner       *runner
+		errorHandler errorHandlerFunc
 	}
 )
 
 func (pe *preExecutor) Invoke(ctx context.Context, payload []byte) ([]byte, error) {
 	done, ctx, payload, err := pe.before(ctx, payload)
+	if done {
+		pe.runner.finish(ctx)
+	}
 	if err != nil {
 		return nil, err
 	}
 	if done {
-		pe.runner.terminated = true
 		return payload, nil
 	}
 
@@ -47,11 +49,11 @@ func (pe *postExecutor) Invoke(ctx context.Context, payload []byte) ([]byte, err
 	if err != nil {
 		return nil, err
 	}
-	if pe.runner.terminated {
-		return res, nil
+	if pe.runner.done(ctx) {
+		return res, err
 	}
 
-	err = pe.after(ctx, payload)
+	err = pe.after(ctx, payload, res)
 	if err != nil {
 		return nil, err
 	}
@@ -64,8 +66,11 @@ func (eh *errorHandler) Invoke(ctx context.Context, payload []byte) ([]byte, err
 	if err == nil {
 		return res, nil
 	}
+	if eh.runner.done(ctx) {
+		return res, err
+	}
 
-	eh.errorHandler(ctx, err)
+	eh.errorHandler(ctx, payload, err)
 
 	return nil, err
 }

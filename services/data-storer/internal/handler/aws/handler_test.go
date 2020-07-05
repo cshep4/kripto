@@ -224,17 +224,15 @@ func TestHandler_StoreRate(t *testing.T) {
 			handler = aws.Handler{
 				Service: service,
 			}
-			ctx            = log.WithServiceName(context.Background(), log.New("debug"), "test")
-			idempotencyKey = "idempotency key"
-			now            = time.Now().UTC().Round(time.Second)
-			rate           = 123.45
-			event          = events.SQSEvent{
+			ctx   = log.WithServiceName(context.Background(), log.New("debug"), "test")
+			now   = time.Now().UTC().Round(time.Second)
+			rate  = 123.45
+			event = events.SQSEvent{
 				Records: []events.SQSMessage{{
 					Body: fmt.Sprintf(`{
-						"idempotencyKey": "%s",
 						"rate": %v,
 						"dateTime": "%s"
-					}`, idempotencyKey, rate, now.Format("2006-01-02T15:04:05Z")),
+					}`, rate, now.Format("2006-01-02T15:04:05Z")),
 				}},
 			}
 			testErr = errors.New("error")
@@ -258,16 +256,14 @@ func TestHandler_StoreRate(t *testing.T) {
 				Service: service,
 			}
 			ctx            = log.WithServiceName(context.Background(), log.New("debug"), "test")
-			idempotencyKey = "idempotency key"
 			now            = time.Now().UTC().Round(time.Second)
 			rate           = 123.45
 			event          = events.SQSEvent{
 				Records: []events.SQSMessage{{
 					Body: fmt.Sprintf(`{
-						"idempotencyKey": "%s",
 						"rate": %v,
 						"dateTime": "%s"
-					}`, idempotencyKey, rate, now.Format("2006-01-02T15:04:05Z")),
+					}`, rate, now.Format("2006-01-02T15:04:05Z")),
 				}},
 			}
 		)

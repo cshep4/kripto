@@ -21,12 +21,11 @@ type Secrets struct {
 		Topic  string `env:"TOPIC"`
 		Region string `env:"REGION"`
 	}
-	MockTrade   bool   `env:"MOCK_TRADE"`
-	TradeAmount string `env:"TRADE_AMOUNT"`
+	MockTrade bool `env:"MOCK_TRADE"`
 }
 
 func (s *Secrets) Fetch() error {
-	_, err := env.UnmarshalFromEnviron(&s)
+	_, err := env.UnmarshalFromEnviron(s)
 	if err != nil {
 		return fmt.Errorf("unmarshal_environment_variables: %w", err)
 	}
@@ -43,8 +42,6 @@ func (s *Secrets) Fetch() error {
 		return fmt.Errorf("missing_environment_variable: COINBASE_PRO_SANDBOX_PASSPHRASE")
 	case s.MockTrade && s.CoinbaseProSandbox.Secret == "":
 		return fmt.Errorf("missing_environment_variable: COINBASE_PRO_SANDBOX_SECRET")
-	case s.TradeAmount == "":
-		return fmt.Errorf("missing_environment_variable: TRADE_AMOUNT")
 	}
 	return err
 }

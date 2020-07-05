@@ -85,5 +85,5 @@ func (m *middleware) PreExecute(ctx context.Context, payload []byte) (bool, cont
 	return false, ctx, payload, nil
 }
 
-func (m *middleware) PostExecute(context.Context, []byte) error { return nil }
-func (m *middleware) HandleError(context.Context, error)        {}
+func (m *middleware) PostExecute(ctx context.Context, payload, response []byte) error     { return nil }
+func (m *middleware) HandleError(ctx context.Context, payload []byte, err error) {}

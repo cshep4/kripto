@@ -41,8 +41,7 @@ var (
 )
 
 func main() {
-	lambda.Init(cfg)
-	runner.Start()
+	runner.Start(cfg)
 }
 
 func setup(ctx context.Context) error {

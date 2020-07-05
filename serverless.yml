@@ -118,8 +118,24 @@ functions:
       COINBASE_PRO_SANDBOX_KEY: ${self:custom.secrets.coinbaseProSandboxApiKey}
       COINBASE_PRO_SANDBOX_PASSPHRASE: ${self:custom.secrets.coinbaseProSandboxPassphrase}
       COINBASE_PRO_SANDBOX_SECRET: ${self:custom.secrets.coinbaseProSandboxSecretKey}
+      MONGO_URI: ${self:custom.secrets.mongoUri}
       MOCK_TRADE: true
-      TRADE_AMOUNT: 10.00
+  get-wallet:
+    runtime: go1.x
+    memorySize: 128
+    handler: services/trader/bin/get-wallet
+    package:
+      include:
+        - services/trader/bin/get-wallet
+    environment:
+      COINBASE_PRO_KEY: ${self:custom.secrets.coinbaseProApiKey}
+      COINBASE_PRO_PASSPHRASE: ${self:custom.secrets.coinbaseProPassphrase}
+      COINBASE_PRO_SECRET: ${self:custom.secrets.coinbaseProSecretKey}
+      COINBASE_PRO_SANDBOX_KEY: ${self:custom.secrets.coinbaseProSandboxApiKey}
+      COINBASE_PRO_SANDBOX_PASSPHRASE: ${self:custom.secrets.coinbaseProSandboxPassphrase}
+      COINBASE_PRO_SANDBOX_SECRET: ${self:custom.secrets.coinbaseProSandboxSecretKey}
+      MONGO_URI: ${self:custom.secrets.mongoUri}
+      MOCK_TRADE: true
   trade-decider:
     runtime: python3.8
     memorySize: 128
@@ -130,16 +146,18 @@ functions:
       include:
         - "*/**"
     environment:
+      GET_WALLET_FUNCTION_NAME: "${self:provider.profile}-${self:provider.stage}-get-wallet"
       READER_FUNCTION_NAME: "${self:provider.profile}-${self:provider.stage}-data-reader"
       TRADER_FUNCTION_NAME: "${self:provider.profile}-${self:provider.stage}-trade"
     reservedConcurrency: 1
     events:
-      - sqs:
-          batchSize: 1
-          arn:
-            Fn::GetAtt:
-              - initiateTradeQueue
-              - Arn
+      - schedule: rate(2 minute)
+  #      - sqs:
+  #          batchSize: 1
+  #          arn:
+  #            Fn::GetAtt:
+  #              - initiateTradeQueue
+  #              - Arn
   receipt-emailer:
     runtime: java11
     memorySize: 512
