@@ -3,7 +3,6 @@ service: kripto
 custom:
   secrets: ${file(secrets.json)}
   pythonRequirements:
-    dockerizePip: true
     useDownloadCache: false
     useStaticCache: false
     pythonBin: /usr/bin/python3
