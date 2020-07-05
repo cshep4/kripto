@@ -6,6 +6,7 @@ custom:
     dockerizePip: non-linux
     useDownloadCache: false
     useStaticCache: false
+    pythonBin: /usr/bin/python3
 
 plugins:
   - serverless-python-requirements
