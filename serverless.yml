@@ -2,13 +2,13 @@ service: kripto
 
 custom:
   secrets: ${file(secrets.json)}
-#  pythonRequirements:
-#    useDownloadCache: false
-#    useStaticCache: false
-#    pythonBin: /usr/bin/python3
+  pythonRequirements:
+    useDownloadCache: false
+    useStaticCache: false
+    pythonBin: /usr/bin/python3
 
-#plugins:
-#  - serverless-python-requirements
+plugins:
+  - serverless-python-requirements
 
 provider:
   name: aws
@@ -145,8 +145,6 @@ functions:
     package:
       include:
         - "*/**"
-      exclude:
-        - "services/trade-decider/env/**"
     environment:
       GET_WALLET_FUNCTION_NAME: "${self:provider.profile}-${self:provider.stage}-get-wallet"
       READER_FUNCTION_NAME: "${self:provider.profile}-${self:provider.stage}-data-reader"

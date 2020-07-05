@@ -382,9 +382,19 @@ workflows:
             branches:
               only:
                 - master
-      - deploy:
+      - build:
+          name: build-trade-decider
+          docker_image: circleci/python:3.7.7
+          service_path: services/trade-decider
           requires:
             - build-receipt-emailer
+          filters:
+            branches:
+              only:
+                - master
+      - deploy:
+          requires:
+            - build-trade-decider
           filters:
             branches:
               only:
