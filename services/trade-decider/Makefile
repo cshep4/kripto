@@ -16,6 +16,7 @@ vendor:
 build:
 	sudo apt update
     sudo apt install python3-pip
+    sudo pip install virtualenv
 	virtualenv ./env
 	source env/bin/activate
 	pip install boto3
