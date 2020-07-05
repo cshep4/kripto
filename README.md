@@ -6,7 +6,7 @@ Kripto ₿ trading platform, periodically checks the BTC-GBP exchange rate using
 
 ## Architecture 🏛 
 
-<img src="docs/KriptoSQS.png" data-canonical-src="screenshots/home.png" alt="Kripto" height="800"/>
+<img src="docs/Kripto.png" data-canonical-src="screenshots/home.png" alt="Kripto" height="800"/>
 
 ## Functions λ
 
