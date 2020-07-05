@@ -333,11 +333,21 @@ workflows:
               only:
                 - master
       - build:
+          name: build-trade-decider
+          docker_image: circleci/python:3.7.7
+          service_path: services/trade-decider
+          requires:
+            - checkout-code
+          filters:
+            branches:
+              only:
+                - master
+      - build:
           name: build-data-storer
           docker_image: cimg/go:1.14
           service_path: services/data-storer
           requires:
-            - checkout-code
+            - build-trade-decider
           filters:
             branches:
               only:
@@ -382,19 +392,9 @@ workflows:
             branches:
               only:
                 - master
-      - build:
-          name: build-trade-decider
-          docker_image: circleci/python:3.7.7
-          service_path: services/trade-decider
-          requires:
-            - build-receipt-emailer
-          filters:
-            branches:
-              only:
-                - master
       - deploy:
           requires:
-            - build-trade-decider
+            - build-receipt-emailer
           filters:
             branches:
               only:

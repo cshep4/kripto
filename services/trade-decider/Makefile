@@ -6,7 +6,7 @@ vendor:
 	sudo apt install python3-pip
 	sudo pip install virtualenv
 	virtualenv ./env
-	source env/bin/activate
+	. env/bin/activate
 	pip install boto3
 	pip install botocore
 	pip install uuid
@@ -18,7 +18,7 @@ build:
 	sudo apt install python3-pip
 	sudo pip install virtualenv
 	virtualenv ./env
-	source env/bin/activate
+	. env/bin/activate
 	pip install boto3
 	pip install botocore
 	pip install uuid
