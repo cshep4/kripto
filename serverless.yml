@@ -151,7 +151,7 @@ functions:
       TRADER_FUNCTION_NAME: "${self:provider.profile}-${self:provider.stage}-trade"
     reservedConcurrency: 1
     events:
-      - schedule: rate(2 minute)
+      - schedule: rate(2 minutes)
   #      - sqs:
   #          batchSize: 1
   #          arn:
