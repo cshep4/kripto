@@ -13,6 +13,5 @@ class Retriever:
             Payload="")
 
         d = json.loads(resp['Payload'].read())
-        self.logger.info('{}'.format(d))
 
         return d["gbp"]["available"], d["btc"]["available"]

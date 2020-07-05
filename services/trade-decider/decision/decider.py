@@ -14,8 +14,8 @@ class Decider:
     def decide(
             self,
             data: dict,
-            bitcoin,
-            usd
+            bitcoin: float,
+            gbp: float
     ) -> (bool, float, str, dict):
         decision = False
 
@@ -45,7 +45,7 @@ class Decider:
         if ontop_now == 's' and ontop_prev == 'l':
             trade_type = "buy"
             decision = True
-            amount = buy_bitcoin(usd, self.trade_percentage, price)
+            amount = buy_bitcoin(gbp, self.trade_percentage, price)
 
         if ontop_now == 'l' and ontop_prev == 's':
             decision = True
@@ -60,6 +60,6 @@ def buy_gbp(bitcoin, trade_percentage, price):
     return how_many
 
 
-def buy_bitcoin(usd, trade_percentage, price):
-    how_many = ((usd * trade_percentage) / price)
+def buy_bitcoin(gbp, trade_percentage, price):
+    how_many = ((gbp * trade_percentage) / price)
     return how_many

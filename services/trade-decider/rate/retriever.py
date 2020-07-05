@@ -2,15 +2,13 @@ import logging
 import json
 import os
 
-from model.rate import Rate
-
 
 class Retriever:
     def __init__(self, logger: logging.Logger, client):
         self.logger = logger
         self.client = client
 
-    def get_rates(self) -> [Rate]:
+    def get_rates(self) -> dict:
         resp = self.client.invoke(
             FunctionName=os.environ['READER_FUNCTION_NAME'],
             InvocationType='RequestResponse',

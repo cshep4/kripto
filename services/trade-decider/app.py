@@ -1,6 +1,5 @@
 import logging
 import boto3
-import json
 
 from decision.decider import Decider
 from rate.retriever import Retriever
@@ -24,9 +23,9 @@ def handler(event, context):
     logger.debug('Received event: {}'.format(event))
 
     rates = rateRetriever.get_rates()
-    decision, amount, trade_type = decider.decide(rates)
-
     gbp, btc = walletRetriever.get_balances()
+
+    decision, amount, trade_type = decider.decide(rates, btc, gbp)
 
     if decision:
         trader.trade(amount, trade_type)
