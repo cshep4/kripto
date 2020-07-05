@@ -1,11 +1,4 @@
-boto3
 botocore
-jmespath==0.9.4
-numpy==1.18.4
+boto3
+uuid
 pandas==1.0.3
-python-dateutil==2.8.1
-pytz==2020.1
-s3transfer==0.2.1
-six==1.12.0
-urllib3==1.24.3
-uuid==1.30
