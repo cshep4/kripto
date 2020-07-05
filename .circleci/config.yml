@@ -126,7 +126,7 @@ jobs:
   deploy:
     docker:
       - image: circleci/node:latest
-      - image: circleci/python:3.8.2
+      - image: circleci/python:3.6.9
     steps:
       - attach_workspace:
           at: .
