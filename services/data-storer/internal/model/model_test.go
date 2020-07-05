@@ -1,11 +1,12 @@
 package model_test
 
 import (
+	"testing"
+	"time"
+
 	"github.com/cshep4/kripto/services/data-storer/internal/model"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"testing"
-	"time"
 )
 
 func TestTradeRequest_ToTrade(t *testing.T) {

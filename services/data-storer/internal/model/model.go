@@ -13,19 +13,9 @@ const (
 )
 
 type (
-	GetResponse struct {
-		Rates  []Rate `json:"rates"`
-		Wallet Wallet `json:"wallet"`
-	}
-
-	Wallet struct {
-		Trades []Trade `json:"trades"`
-	}
-
 	StoreRateRequest struct {
-		IdempotencyKey string    `json:"idempotencyKey"`
-		Rate           float64   `json:"rate"`
-		DateTime       time.Time `json:"dateTime"`
+		Rate     float64   `json:"rate"`
+		DateTime time.Time `json:"dateTime"`
 	}
 
 	Rate struct {

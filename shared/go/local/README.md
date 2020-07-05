@@ -6,11 +6,11 @@ Small CLI package to allow you to invoke your Go AWS lambda locally.
 
 To use the package
 ```
-go get -u github.com/cshep4/shared/local
+go get -u github.com/cshep4/kripto/shared/go/local
 ```
 To use the CLI
 ```
-go install github.com/cshep4/shared/local/cli/lambda-invoke.go
+go install github.com/cshep4/kripto/shared/go/local/cli
 ```
 
 ## Example usage

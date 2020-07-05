@@ -346,7 +346,7 @@ workflows:
           docker_image: cimg/go:1.14
           service_path: services/trader
           requires:
-            - build-data-storer
+            - checkout-code
           filters:
             branches:
               only:
@@ -356,7 +356,7 @@ workflows:
           docker_image: circleci/node:8.10
           service_path: services/rate-retriever
           requires:
-            - build-trader
+            - checkout-code
           filters:
             branches:
               only:
@@ -366,7 +366,7 @@ workflows:
           docker_image: cimg/openjdk:11.0
           service_path: shared/java/idempotency
           requires:
-            - build-rate-retriever
+            - checkout-code
           filters:
             branches:
               only:
@@ -383,6 +383,9 @@ workflows:
                 - master
       - deploy:
           requires:
+            - build-data-storer
+            - build-trader
+            - build-rate-retriever
             - build-receipt-emailer
           filters:
             branches:
