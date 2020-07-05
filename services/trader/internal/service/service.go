@@ -4,12 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/cshep4/kripto/services/trader/internal/model"
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/service/sns"
+	"github.com/cshep4/kripto/services/trader/internal/model"
 	"github.com/cshep4/kripto/services/trader/internal/trader"
 )
 
