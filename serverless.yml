@@ -145,6 +145,8 @@ functions:
     package:
       include:
         - "*/**"
+      exclude:
+        - "services/trade-decider/env/**"
     environment:
       GET_WALLET_FUNCTION_NAME: "${self:provider.profile}-${self:provider.stage}-get-wallet"
       READER_FUNCTION_NAME: "${self:provider.profile}-${self:provider.stage}-data-reader"
