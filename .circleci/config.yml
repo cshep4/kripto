@@ -162,6 +162,8 @@ jobs:
           command: |
             sudo apt update
             sudo apt install python3-pip
+            sudo pip -V
+            sudo pip3 install --upgrade pip
 
       - run:
           name: Install Serverless CLI, Configure Profile, Deploy
