@@ -161,7 +161,7 @@ jobs:
           name: Install pip
           command: |
             sudo apt update
-            sudo apt install python-pip
+            sudo apt install python3-pip
 
       - run:
           name: Install Serverless CLI, Configure Profile, Deploy
