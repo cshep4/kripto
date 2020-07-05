@@ -2,13 +2,13 @@ service: kripto
 
 custom:
   secrets: ${file(secrets.json)}
-  pythonRequirements:
-    useDownloadCache: false
-    useStaticCache: false
-    pythonBin: /usr/bin/python3
+#  pythonRequirements:
+#    useDownloadCache: false
+#    useStaticCache: false
+#    pythonBin: /usr/bin/python3
 
-plugins:
-  - serverless-python-requirements
+#plugins:
+#  - serverless-python-requirements
 
 provider:
   name: aws
