@@ -146,10 +146,10 @@ functions:
       exclude:
         - services/trade-decider/env/**
       include:
-        - services/trade-decider/decision
-        - services/trade-decider/rate
-        - services/trade-decider/trade
-        - services/trade-decider/wallet
+        - services/trade-decider/decision/**
+        - services/trade-decider/rate/**
+        - services/trade-decider/trade/**
+        - services/trade-decider/wallet/**
         - services/trade-decider/requirements.txt
         - services/trade-decider/app.py
     environment:
