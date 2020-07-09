@@ -219,6 +219,6 @@ Kripto ₿ trading platform, periodically checks the BTC-GBP exchange rate using
 
 ##### Payload
     {
-        "rate": "8012.92",
+        "rate": "8012.91",
         "dateTime": "2020-05-19T19:39:00"
     }
