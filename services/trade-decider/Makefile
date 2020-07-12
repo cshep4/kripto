@@ -11,7 +11,7 @@ vendor:
 	pip install botocore
 	pip install uuid
 	pip install pandas
-	pip freeze > requirements.txt
+	#pip freeze > requirements.txt
 
 build:
 	sudo apt update
@@ -23,4 +23,4 @@ build:
 	pip install botocore
 	pip install uuid
 	pip install pandas
-	pip freeze > requirements.txt
+	#pip freeze > requirements.txt
