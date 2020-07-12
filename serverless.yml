@@ -165,21 +165,21 @@ functions:
   #            Fn::GetAtt:
   #              - initiateTradeQueue
   #              - Arn
-  receipt-emailer:
-    runtime: java11
-    memorySize: 512
-    handler: com.cshep4.kripto.receiptemailer.handler.Handler
-    environment:
-      SEND_GRID_API_KEY: ${self:custom.secrets.sendGridApiKey}
-      RECEIPT_RECIPIENT: chris_shepherd2@hotmail.com
-      MONGO_URI: ${self:custom.secrets.mongoUri}
-    package:
-      artifact: bazel-bin/services/receipt-emailer/receipt_emailer.jar
-    reservedConcurrency: 1
-    events:
-      - sqs:
-          batchSize: 1
-          arn:
-            Fn::GetAtt:
-              - emailReceiptQueue
-              - Arn
+#  receipt-emailer:
+#    runtime: java11
+#    memorySize: 512
+#    handler: com.cshep4.kripto.receiptemailer.handler.Handler
+#    environment:
+#      SEND_GRID_API_KEY: ${self:custom.secrets.sendGridApiKey}
+#      RECEIPT_RECIPIENT: chris_shepherd2@hotmail.com
+#      MONGO_URI: ${self:custom.secrets.mongoUri}
+#    package:
+#      artifact: bazel-bin/services/receipt-emailer/receipt_emailer.jar
+#    reservedConcurrency: 1
+#    events:
+#      - sqs:
+#          batchSize: 1
+#          arn:
+#            Fn::GetAtt:
+#              - emailReceiptQueue
+#              - Arn

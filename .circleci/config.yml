@@ -382,19 +382,19 @@ workflows:
 #            branches:
 #              only:
 #                - master
-      - build:
-          name: build-receipt-emailer
-          docker_image: cimg/openjdk:11.0
-          service_path: services/receipt-emailer
-          requires:
-            - build-rate-retriever
-          filters:
-            branches:
-              only:
-                - master
+#      - build:
+#          name: build-receipt-emailer
+#          docker_image: cimg/openjdk:11.0
+#          service_path: services/receipt-emailer
+#          requires:
+#            - build-rate-retriever
+#          filters:
+#            branches:
+#              only:
+#                - master
       - deploy:
           requires:
-            - build-receipt-emailer
+            - build-rate-retriever
           filters:
             branches:
               only:
