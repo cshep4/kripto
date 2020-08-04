@@ -28,4 +28,4 @@ def handler(event, context):
     decision, amount, trade_type = decider.decide(rates, btc, gbp)
 
     if decision:
-        trader.trade(amount, trade_type)
+        trader.trade(amount, trade_type, context.aws_request_id)
