@@ -9,6 +9,7 @@ vendor:
 	. env/bin/activate
 	pip install boto3
 	pip install botocore
+	pip install --target ./package numpy
 	pip install pandas
 	#pip freeze > requirements.txt
 
@@ -20,5 +21,6 @@ build:
 	. env/bin/activate
 	pip install boto3
 	pip install botocore
+	pip install --target ./package numpy
 	pip install pandas
 	#pip freeze > requirements.txt
