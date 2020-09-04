@@ -334,7 +334,7 @@ workflows:
                 - master
       - build:
           name: build-trade-decider
-          docker_image: lambci/lambda
+          docker_image: lambci/lambda:build-python3.7
           service_path: services/trade-decider
           requires:
             - checkout-code
