@@ -11,7 +11,7 @@ vendor:
 	python3.7 -m pip install botocore
 	python3.7 -m pip install --target ./package numpy
 	python3.7 -m pip install pandas
-	#pip freeze > requirements.txt
+	python3.7 -m pip freeze > requirements.txt
 
 build:
 	sudo apt update
@@ -23,4 +23,4 @@ build:
 	python3.7 -m pip install botocore
 	python3.7 -m pip install --target ./package numpy
 	python3.7 -m pip install pandas
-	#pip freeze > requirements.txt
+	python3.7 -m pip freeze > requirements.txt
