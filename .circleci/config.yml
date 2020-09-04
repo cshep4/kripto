@@ -104,6 +104,7 @@ jobs:
   build:
     docker:
       - image: << parameters.docker_image >>
+      - image: amazonlinux
     parameters:
       docker_image:
         type: string
@@ -126,7 +127,7 @@ jobs:
   deploy:
     docker:
       - image: circleci/node:latest
-      - image: amazonlinux
+      - image: circleci/python:3.7.7
     steps:
       - attach_workspace:
           at: .
@@ -157,12 +158,12 @@ jobs:
             "${COINBASE_PRO_SANDBOX_KEY}" "${COINBASE_PRO_SANDBOX_PASSPHRASE}" "${COINBASE_PRO_SANDBOX_SECRET}" \
             "${AWS_ACCOUNT_ID}" "${LUMIGO_TOKEN}" "${SEND_GRID_API_KEY}" > secrets.json
 
-#      - run:
-#          name: Install pip
-#          command: |
-#            sudo apt update
-#            sudo apt install python3-pip
-#            sudo pip3 install --upgrade pip
+      - run:
+          name: Install pip
+          command: |
+            sudo apt update
+            sudo apt install python3-pip
+            sudo pip3 install --upgrade pip
 
       - run:
           name: Install Serverless CLI, Configure Profile, Deploy
@@ -334,7 +335,7 @@ workflows:
                 - master
       - build:
           name: build-trade-decider
-          docker_image: amazonlinux
+          docker_image: circleci/python:3.7.7
           service_path: services/trade-decider
           requires:
             - checkout-code
