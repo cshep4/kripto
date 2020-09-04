@@ -7,10 +7,10 @@ vendor:
 	sudo pip install virtualenv
 	virtualenv ./env
 	. env/bin/activate
-	pip install boto3
-	pip install botocore
-	pip install --target ./package numpy
-	pip install pandas
+	python3.7 -m pip install boto3
+	python3.7 -m pip install botocore
+	python3.7 -m pip install --target ./package numpy
+	python3.7 -m pip install pandas
 	#pip freeze > requirements.txt
 
 build:
@@ -19,8 +19,8 @@ build:
 	sudo pip install virtualenv
 	virtualenv ./env
 	. env/bin/activate
-	pip install boto3
-	pip install botocore
-	pip install --target ./package numpy
-	pip install pandas
+	python3.7 -m pip install boto3
+	python3.7 -m pip install botocore
+	python3.7 -m pip install --target ./package numpy
+	python3.7 -m pip install pandas
 	#pip freeze > requirements.txt
