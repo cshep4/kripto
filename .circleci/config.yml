@@ -126,7 +126,6 @@ jobs:
   deploy:
     docker:
       - image: circleci/node:latest
-      - image: lambci/lambda:build-python3.7
     steps:
       - attach_workspace:
           at: .
