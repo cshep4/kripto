@@ -29,7 +29,7 @@ default: build
 
 vendor:
 	yum -y install sudo
-	yum -y install apt
+	yum -y install synaptic
 	sudo apt update
 	sudo apt install python3-pip
 	sudo pip install virtualenv
@@ -42,11 +42,6 @@ vendor:
 	#pip freeze > requirements.txt
 
 build:
-	yum -y install sudo
-	yum -y install apt
-	sudo apt update
-	sudo apt install python3-pip
-	sudo pip install virtualenv
 	virtualenv ./env
 	. env/bin/activate
 	pip install boto3
