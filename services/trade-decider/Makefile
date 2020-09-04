@@ -35,17 +35,17 @@ vendor:
 	sudo pip install virtualenv
 	virtualenv ./env
 	. env/bin/activate
-	pip install boto3
-	pip install botocore
+	pip install --target ./package boto3
+	pip install --target ./package botocore
 	pip install --target ./package numpy
-	pip install pandas
+	pip install --target ./package pandas
 	#pip freeze > requirements.txt
 
 build:
 	virtualenv ./env
 	. env/bin/activate
-	pip install boto3
-	pip install botocore
-	pip install --target ./package numpy
-	pip install pandas
+	python3.7 -m pip install --target ./package boto3
+	python3.7 -m pip install --target ./package botocore
+	python3.7 -m pip install --target ./package numpy
+	python3.7 -m pip install --target ./package pandas
 	#pip freeze > requirements.txt
