@@ -104,7 +104,6 @@ jobs:
   build:
     docker:
       - image: << parameters.docker_image >>
-      - image: amazonlinux
     parameters:
       docker_image:
         type: string
@@ -335,7 +334,7 @@ workflows:
                 - master
       - build:
           name: build-trade-decider
-          docker_image: circleci/python:3.7.7
+          docker_image: lambci/lambda
           service_path: services/trade-decider
           requires:
             - checkout-code
