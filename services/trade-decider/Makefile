@@ -28,7 +28,8 @@
 default: build
 
 vendor:
-	apt-get install sudo -y
+	yum install sudo
+	yum install apt
 	sudo apt update
 	sudo apt install python3-pip
 	sudo pip install virtualenv
@@ -41,7 +42,8 @@ vendor:
 	#pip freeze > requirements.txt
 
 build:
-	apt-get install sudo -y
+	yum install sudo
+	yum install apt
 	sudo apt update
 	sudo apt install python3-pip
 	sudo pip install virtualenv
