@@ -131,7 +131,7 @@ functions:
       MOCK_TRADE: true
   trade-decider:
     runtime: python3.7
-    memorySize: 128
+    memorySize: 512
     timeout: 120
     module: services/trade-decider
     handler: app.handler
