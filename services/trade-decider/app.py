@@ -13,7 +13,7 @@ logger.info('initialisation')
 
 lambda_client = boto3.client('lambda')
 
-rateRetriever = Retriever(logger, lambda_client)
+rateRetriever = Retriever(lambda_client)
 walletRetriever = walletRetriever(lambda_client)
 decider = Decider(logger)
 trader = Trader(logger, lambda_client)

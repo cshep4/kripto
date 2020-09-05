@@ -1,11 +1,9 @@
-import logging
 import json
 import os
 
 
 class Retriever:
-    def __init__(self, logger: logging.Logger, client):
-        self.logger = logger
+    def __init__(self, client):
         self.client = client
 
     def get_rates(self) -> dict:
@@ -20,7 +18,5 @@ class Retriever:
 
         for r in d:
             rates["p"].append(r['rate'])
-
-        self.logger.info('{}'.format(rates))
 
         return rates
