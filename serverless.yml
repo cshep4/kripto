@@ -166,7 +166,7 @@ functions:
     handler: com.cshep4.kripto.receiptemailer.handler.Handler
     environment:
       SEND_GRID_API_KEY: ${self:custom.secrets.sendGridApiKey}
-      RECEIPT_RECIPIENT: chris_shepherd2@hotmail.com
+      RECEIPT_RECIPIENT: shepapps4@gmail.com
       MONGO_URI: ${self:custom.secrets.mongoUri}
     package:
       artifact: services/receipt-emailer/build/libs/receipt-emailer-1.0.0.jar
