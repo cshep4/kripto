@@ -162,6 +162,7 @@ functions:
   receipt-emailer:
     runtime: java11
     memorySize: 512
+    timeout: 120
     handler: com.cshep4.kripto.receiptemailer.handler.Handler
     environment:
       SEND_GRID_API_KEY: ${self:custom.secrets.sendGridApiKey}
