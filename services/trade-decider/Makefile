@@ -42,10 +42,17 @@ vendor:
 	pip freeze > requirements.txt
 
 build:
-	virtualenv ./env
-	. env/bin/activate
-	python3.7 -m pip install --target ./package boto3==1.14.16
-	python3.7 -m pip install --target ./package botocore==1.17.16
-	python3.7 -m pip install --target ./package numpy==1.18.5
-	python3.7 -m pip install --target ./package pandas==0.25.3
-	pip freeze > requirements.txt
+#	virtualenv ./env
+#	. env/bin/activate
+	python3.7 -m pip install -t . boto3
+	#python3.7 -m pip install -t . botocore
+	python3.7 -m pip install -t . pytz
+	rm -r *.dist-info __pycache__
+	#rm -r *.whl *.dist-info __pycache__
+	#pip freeze > requirements.txt
+
+create:
+	docker build -t lambda_image .
+	docker create --name extract lambda_image
+	docker cp extract:/var/task/lambda.zip .
+	docker rm extract

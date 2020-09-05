@@ -2,13 +2,6 @@ service: kripto
 
 custom:
   secrets: ${file(secrets.json)}
-  pythonRequirements:
-    useDownloadCache: false
-    useStaticCache: false
-    pythonBin: /usr/bin/python3
-
-plugins:
-  - serverless-python-requirements
 
 provider:
   name: aws
@@ -143,20 +136,21 @@ functions:
     module: services/trade-decider
     handler: app.handler
     package:
-      exclude:
-        - services/trade-decider/env/**
       include:
         - services/trade-decider/decision/**
         - services/trade-decider/rate/**
         - services/trade-decider/trade/**
         - services/trade-decider/wallet/**
-        - services/trade-decider/requirements.txt
         - services/trade-decider/app.py
     environment:
       GET_WALLET_FUNCTION_NAME: "${self:provider.profile}-${self:provider.stage}-get-wallet"
       READER_FUNCTION_NAME: "${self:provider.profile}-${self:provider.stage}-data-reader"
       TRADER_FUNCTION_NAME: "${self:provider.profile}-${self:provider.stage}-trade"
     reservedConcurrency: 1
+    layers:
+      - arn:aws:lambda:eu-west-1:113088814899:layer:Klayers-python37-pandas:1
+      - arn:aws:lambda:eu-west-1:113088814899:layer:Klayers-python37-numpy:10
+      - arn:aws:lambda:eu-west-1:113088814899:layer:Klayers-python37-pytz:6
     events:
       - schedule: rate(2 minutes)
   #      - sqs:

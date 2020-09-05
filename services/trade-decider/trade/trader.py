@@ -14,5 +14,5 @@ class Trader:
         self.client.invoke(
             FunctionName=os.environ['TRADER_FUNCTION_NAME'],
             InvocationType='Event',
-            Payload=json.dumps({"tradeType": trade_type, "amount": str(amount), "idempotencyKey": request_id)
+            Payload=json.dumps({"tradeType": trade_type, "amount": str(amount), "idempotencyKey": request_id})
         )

@@ -333,16 +333,6 @@ workflows:
               only:
                 - master
       - build:
-          name: build-trade-decider
-          docker_image: lambci/lambda:build-python3.7
-          service_path: services/trade-decider
-          requires:
-            - checkout-code
-          filters:
-            branches:
-              only:
-                - master
-      - build:
           name: build-data-storer
           docker_image: cimg/go:1.14
           service_path: services/data-storer
