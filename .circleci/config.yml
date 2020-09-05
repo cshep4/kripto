@@ -337,7 +337,7 @@ workflows:
           docker_image: cimg/go:1.14
           service_path: services/data-storer
           requires:
-            - build-trade-decider
+            - checkout-code
           filters:
             branches:
               only:
