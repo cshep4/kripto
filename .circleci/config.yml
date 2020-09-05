@@ -354,29 +354,29 @@ workflows:
             branches:
               only:
                 - master
-#      - build:
-#          name: build-java-idempotency
-#          docker_image: cimg/openjdk:11.0
-#          service_path: shared/java/idempotency
-#          requires:
-#            - build-rate-retriever
-#          filters:
-#            branches:
-#              only:
-#                - master
-#      - build:
-#          name: build-receipt-emailer
-#          docker_image: cimg/openjdk:11.0
-#          service_path: services/receipt-emailer
-#          requires:
-#            - build-rate-retriever
-#          filters:
-#            branches:
-#              only:
-#                - master
-      - deploy:
+      - build:
+          name: build-java-idempotency
+          docker_image: cimg/openjdk:11.0
+          service_path: shared/java/idempotency
           requires:
             - build-rate-retriever
+          filters:
+            branches:
+              only:
+                - master
+      - build:
+          name: build-receipt-emailer
+          docker_image: cimg/openjdk:11.0
+          service_path: services/receipt-emailer
+          requires:
+            - build-java-idempotency
+          filters:
+            branches:
+              only:
+                - master
+      - deploy:
+          requires:
+            - build-receipt-emailer
           filters:
             branches:
               only:
