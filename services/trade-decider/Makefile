@@ -39,13 +39,13 @@ vendor:
 	pip install --target ./package botocore
 	pip install --target ./package numpy
 	pip install --target ./package pandas
-	#pip freeze > requirements.txt
+	pip freeze > requirements.txt
 
 build:
 	virtualenv ./env
 	. env/bin/activate
-	python3.7 -m pip install --target ./package boto3
-	python3.7 -m pip install --target ./package botocore
-	python3.7 -m pip install --target ./package numpy
-	python3.7 -m pip install --target ./package pandas
-	#pip freeze > requirements.txt
+	python3.7 -m pip install --target ./package boto3==1.14.16
+	python3.7 -m pip install --target ./package botocore==1.17.16
+	python3.7 -m pip install --target ./package numpy==1.18.5
+	python3.7 -m pip install --target ./package pandas==0.25.3
+	pip freeze > requirements.txt
