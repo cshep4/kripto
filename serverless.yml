@@ -133,7 +133,8 @@ functions:
     runtime: python3.7
     memorySize: 512
     timeout: 120
-    handler: services/trade-decider/app.handler
+    module: services/trade-decider
+    handler: app.handler
     package:
       include:
         - services/trade-decider/decision/**
