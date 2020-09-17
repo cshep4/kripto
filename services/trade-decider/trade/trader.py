@@ -9,6 +9,9 @@ class Trader:
         self.client = client
 
     def trade(self, amount: float, trade_type: str, request_id: str):
+        if amount < 10:
+            amount = 10
+
         self.logger.info(trade_type + "ing " + str(amount))
 
         self.client.invoke(
