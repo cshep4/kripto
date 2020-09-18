@@ -8,14 +8,16 @@ import (
 
 type Secrets struct {
 	CoinbasePro struct {
-		Key        string `env:"COINBASE_PRO_KEY"`
-		Passphrase string `env:"COINBASE_PRO_PASSPHRASE"`
-		Secret     string `env:"COINBASE_PRO_SECRET"`
-	}
-	CoinbaseProSandbox struct {
-		Key        string `env:"COINBASE_PRO_SANDBOX_KEY"`
-		Passphrase string `env:"COINBASE_PRO_SANDBOX_PASSPHRASE"`
-		Secret     string `env:"COINBASE_PRO_SANDBOX_SECRET"`
+		Live struct {
+			Key        string `env:"COINBASE_PRO_KEY"`
+			Passphrase string `env:"COINBASE_PRO_PASSPHRASE"`
+			Secret     string `env:"COINBASE_PRO_SECRET"`
+		}
+		Sandbox struct {
+			Key        string `env:"COINBASE_PRO_SANDBOX_KEY"`
+			Passphrase string `env:"COINBASE_PRO_SANDBOX_PASSPHRASE"`
+			Secret     string `env:"COINBASE_PRO_SANDBOX_SECRET"`
+		}
 	}
 	SNS struct {
 		Topic  string `env:"TOPIC"`
@@ -30,17 +32,17 @@ func (s *Secrets) Fetch() error {
 		return fmt.Errorf("unmarshal_environment_variables: %w", err)
 	}
 	switch {
-	case !s.MockTrade && s.CoinbasePro.Key == "":
+	case !s.MockTrade && s.CoinbasePro.Live.Key == "":
 		return fmt.Errorf("missing_environment_variable: COINBASE_PRO_KEY")
-	case !s.MockTrade && s.CoinbasePro.Passphrase == "":
+	case !s.MockTrade && s.CoinbasePro.Live.Passphrase == "":
 		return fmt.Errorf("missing_environment_variable: COINBASE_PRO_PASSPHRASE")
-	case !s.MockTrade && s.CoinbasePro.Secret == "":
+	case !s.MockTrade && s.CoinbasePro.Live.Secret == "":
 		return fmt.Errorf("missing_environment_variable: COINBASE_PRO_SECRET")
-	case s.MockTrade && s.CoinbaseProSandbox.Key == "":
+	case s.MockTrade && s.CoinbasePro.Sandbox.Key == "":
 		return fmt.Errorf("missing_environment_variable: COINBASE_PRO_SANDBOX_KEY")
-	case s.MockTrade && s.CoinbaseProSandbox.Passphrase == "":
+	case s.MockTrade && s.CoinbasePro.Sandbox.Passphrase == "":
 		return fmt.Errorf("missing_environment_variable: COINBASE_PRO_SANDBOX_PASSPHRASE")
-	case s.MockTrade && s.CoinbaseProSandbox.Secret == "":
+	case s.MockTrade && s.CoinbasePro.Sandbox.Secret == "":
 		return fmt.Errorf("missing_environment_variable: COINBASE_PRO_SANDBOX_SECRET")
 	}
 	return err

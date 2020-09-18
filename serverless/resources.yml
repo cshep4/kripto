@@ -121,22 +121,6 @@ Resources:
     Type: AWS::SQS::Queue
     Properties:
       QueueName: "StoreRateDLQ"
-  # Create our 'initiateTradeQueue' SQS queue
-#  initiateTradeQueue:
-#    Type: "AWS::SQS::Queue"
-#    Properties:
-#      QueueName: "InitiateTrade"
-#      VisibilityTimeout: 120
-#      RedrivePolicy:
-#        deadLetterTargetArn: !GetAtt
-#          - initiateTradeQueueDLQ
-#          - Arn
-#        maxReceiveCount: 3
-  # Create our 'initiateTradeQueue' Dead Letter Queue SQS queue
-#  initiateTradeQueueDLQ:
-#    Type: AWS::SQS::Queue
-#    Properties:
-#      QueueName: "InitiateTradeDLQ"
   # Create our queue policy for the 'storeRateQueue'
   snsToStoreRateQueueSqsPolicy:
     Type: AWS::SQS::QueuePolicy
@@ -156,25 +140,6 @@ Resources:
                 "aws:SourceArn": !Ref rateUpdateTopic
       Queues:
         - Ref: storeRateQueue
-  # Create our queue policy for the 'initiateTradeQueue'
-#  snsToInitiateTradeQueueSqsPolicy:
-#    Type: AWS::SQS::QueuePolicy
-#    Properties:
-#      PolicyDocument:
-#        Version: "2012-10-17"
-#        Statement:
-#          - Sid: "allow-sns-messages"
-#            Effect: Allow
-#            Principal: "*"
-#            Resource: !GetAtt
-#              - initiateTradeQueue
-#              - Arn
-#            Action: "SQS:SendMessage"
-#            Condition:
-#              ArnEquals:
-#                "aws:SourceArn": !Ref rateUpdateTopic
-#      Queues:
-#        - Ref: initiateTradeQueue
   # Create the subscription to the 'storeRateQueue'
   storeRateQueueSubscription:
     Type: 'AWS::SNS::Subscription'
@@ -185,13 +150,3 @@ Resources:
         - Arn
       Protocol: sqs
       RawMessageDelivery: 'true'
-  # Create the subscription to the 'initiateTradeQueue'
-#  initiateTradeQueueSubscription:
-#    Type: 'AWS::SNS::Subscription'
-#    Properties:
-#      TopicArn: !Ref rateUpdateTopic
-#      Endpoint: !GetAtt
-#        - initiateTradeQueue
-#        - Arn
-#      Protocol: sqs
-#      RawMessageDelivery: 'true'

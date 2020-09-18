@@ -67,6 +67,31 @@ func TestHandler_Trade(t *testing.T) {
 		assert.Equal(t, "empty", brErr.Err)
 	})
 
+	t.Run("returns error if amount is invalid", func(t *testing.T) {
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		ctx := context.Background()
+		const (
+			tradeType = "buy"
+			amount    = "amount"
+		)
+
+		service := service_mocks.NewMockServicer(ctrl)
+		handler := aws.Handler{Service: service}
+
+		err := handler.Trade(ctx, aws.TradeRequest{
+			TradeType: tradeType,
+			Amount:    amount,
+		})
+		require.Error(t, err)
+
+		brErr, ok := err.(aws.BadRequestError)
+		assert.True(t, ok)
+		assert.Equal(t, "amount", brErr.Parameter)
+		assert.Equal(t, "invalid value - should be numeric", brErr.Err)
+	})
+
 	t.Run("returns error if error making trade", func(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
@@ -77,7 +102,8 @@ func TestHandler_Trade(t *testing.T) {
 		)
 		const (
 			tradeType = "buy"
-			amount    = "amount"
+			reqAmount = "10"
+			amount    = "10.00"
 		)
 
 		service := service_mocks.NewMockServicer(ctrl)
@@ -87,7 +113,7 @@ func TestHandler_Trade(t *testing.T) {
 
 		err := handler.Trade(ctx, aws.TradeRequest{
 			TradeType: tradeType,
-			Amount:    amount,
+			Amount:    reqAmount,
 		})
 		require.Error(t, err)
 
@@ -101,7 +127,8 @@ func TestHandler_Trade(t *testing.T) {
 		ctx := context.Background()
 		const (
 			tradeType = "buy"
-			amount    = "amount"
+			reqAmount = "10"
+			amount    = "10.00"
 		)
 
 		service := service_mocks.NewMockServicer(ctrl)
@@ -111,7 +138,7 @@ func TestHandler_Trade(t *testing.T) {
 
 		err := handler.Trade(ctx, aws.TradeRequest{
 			TradeType: tradeType,
-			Amount:    amount,
+			Amount:    reqAmount,
 		})
 		require.NoError(t, err)
 	})

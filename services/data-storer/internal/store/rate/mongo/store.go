@@ -20,7 +20,8 @@ const (
 
 type (
 	store struct {
-		client *mongo.Client
+		client     *mongo.Client
+		collection *mongo.Collection
 	}
 
 	// InvalidParameterError is returned when a required parameter passed to New is invalid.
@@ -39,7 +40,8 @@ func New(ctx context.Context, client *mongo.Client) (*store, error) {
 	}
 
 	s := &store{
-		client: client,
+		client:     client,
+		collection: client.Database(db).Collection(collection),
 	}
 
 	if err := s.ping(ctx); err != nil {
@@ -54,10 +56,7 @@ func New(ctx context.Context, client *mongo.Client) (*store, error) {
 }
 
 func (s *store) ensureIndexes(ctx context.Context) error {
-	_, err := s.client.
-		Database(db).
-		Collection(collection).
-		Indexes().
+	_, err := s.collection.Indexes().
 		CreateOne(
 			ctx,
 			mongo.IndexModel{
@@ -78,14 +77,11 @@ func (s *store) ensureIndexes(ctx context.Context) error {
 }
 
 func (s *store) Store(ctx context.Context, r float64, dateTime time.Time) error {
-	_, err := s.client.
-		Database(db).
-		Collection(collection).
-		InsertOne(ctx, &rate{
-			Id:       primitive.NewObjectID(),
-			Rate:     r,
-			DateTime: dateTime,
-		})
+	_, err := s.collection.InsertOne(ctx, &rate{
+		Id:       primitive.NewObjectID(),
+		Rate:     r,
+		DateTime: dateTime,
+	})
 	if err != nil {
 		return fmt.Errorf("insert_one: %w", err)
 	}
@@ -94,28 +90,25 @@ func (s *store) Store(ctx context.Context, r float64, dateTime time.Time) error 
 }
 
 func (s *store) GetPreviousWeeks(ctx context.Context) ([]model.Rate, error) {
-	cur, err := s.client.
-		Database(db).
-		Collection(collection).
-		Find(
-			ctx,
-			bson.D{
-				{
-					Key: "dateTime",
-					Value: bson.D{
-						{
-							Key:   "$gte",
-							Value: time.Now().AddDate(0, 0, -7),
-						},
+	cur, err := s.collection.Find(
+		ctx,
+		bson.D{
+			{
+				Key: "dateTime",
+				Value: bson.D{
+					{
+						Key:   "$gte",
+						Value: time.Now().AddDate(0, 0, -7),
 					},
 				},
 			},
-			&options.FindOptions{
-				Sort: bson.D{
-					bson.E{Key: "dateTime", Value: -1},
-				},
+		},
+		&options.FindOptions{
+			Sort: bson.D{
+				bson.E{Key: "dateTime", Value: -1},
 			},
-		)
+		},
+	)
 	if err != nil {
 		return nil, fmt.Errorf("find: %w", err)
 	}
