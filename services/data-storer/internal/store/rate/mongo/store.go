@@ -5,12 +5,13 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/cshep4/kripto/services/data-storer/internal/model"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/x/bsonx"
+
+	"github.com/cshep4/kripto/services/data-storer/internal/model"
 )
 
 const (
