@@ -33,7 +33,6 @@ class Decider:
 
         # compare to now
         row = df_limited.iloc[-1]
-        price = row["p"]
         trade_type = None
         amount = 0
 
@@ -45,21 +44,11 @@ class Decider:
         if ontop_now == 's' and ontop_prev == 'l':
             trade_type = "buy"
             decision = True
-            amount = buy_bitcoin(gbp, self.trade_percentage, price)
+            amount = gbp * self.trade_percentage
 
         if ontop_now == 'l' and ontop_prev == 's':
             decision = True
             trade_type = "sell"
-            amount = buy_gbp(bitcoin, self.trade_percentage, price)
+            amount = bitcoin * self.trade_percentage
 
         return decision, amount, trade_type
-
-
-def buy_gbp(bitcoin, trade_percentage, price):
-    how_many = ((bitcoin * trade_percentage) * price)
-    return how_many
-
-
-def buy_bitcoin(gbp, trade_percentage, price):
-    how_many = ((gbp * trade_percentage) / price)
-    return how_many
