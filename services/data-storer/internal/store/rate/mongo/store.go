@@ -90,7 +90,7 @@ func (s *store) Store(ctx context.Context, r float64, dateTime time.Time) error 
 	return nil
 }
 
-func (s *store) GetPreviousWeeks(ctx context.Context) ([]model.Rate, error) {
+func (s *store) GetPreviousMonth(ctx context.Context) ([]model.Rate, error) {
 	cur, err := s.collection.Find(
 		ctx,
 		bson.D{
@@ -99,7 +99,7 @@ func (s *store) GetPreviousWeeks(ctx context.Context) ([]model.Rate, error) {
 				Value: bson.D{
 					{
 						Key:   "$gte",
-						Value: time.Now().AddDate(0, 0, -7),
+						Value: time.Now().AddDate(0, -1, 0),
 					},
 				},
 			},
