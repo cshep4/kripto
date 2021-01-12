@@ -10,7 +10,6 @@ import com.cshep4.kripto.receiptemailer.model.Trade
 import com.cshep4.kripto.receiptemailer.result.EmailResult
 import com.cshep4.kripto.receiptemailer.util.Gson
 import com.sendgrid.SendGrid
-import io.lumigo.handlers.LumigoRequestExecutor
 import org.litote.kmongo.KMongo
 import java.util.function.Supplier
 import kotlin.system.exitProcess
@@ -26,29 +25,25 @@ class Handler : RequestHandler<SQSEvent, Unit> {
     private val gson = Gson.build()
 
     override fun handleRequest(event: SQSEvent, context: Context?) {
-        val supplier: Supplier<Unit> = Supplier<Unit> {
-            val logger = context?.logger
+        val logger = context?.logger
 
-            event.records.forEach {
-                val trade = gson.fromJson(it.body, Trade::class.java)
+        event.records.forEach {
+            val trade = gson.fromJson(it.body, Trade::class.java)
 
-                when (val i = idempotencer.check(trade.id)) {
-                    is IdempotencyResult.Error -> throw Exception(i.message, i.cause)
-                    is IdempotencyResult.Success -> {
-                        if (i.exists) {
-                            logger?.log("msg_already_processed - trade: " + gson.toJson(trade))
-                            return@Supplier
-                        }
+            when (val i = idempotencer.check(trade.id)) {
+                is IdempotencyResult.Error -> throw Exception(i.message, i.cause)
+                is IdempotencyResult.Success -> {
+                    if (i.exists) {
+                        logger?.log("msg_already_processed - trade: " + gson.toJson(trade))
+                        return@Supplier
                     }
                 }
+            }
 
-                when (val e = emailer.send(context, trade)) {
-                    is EmailResult.Error -> throw throw Exception(e.message, e.cause)
-                }
+            when (val e = emailer.send(context, trade)) {
+                is EmailResult.Error -> throw throw Exception(e.message, e.cause)
             }
         }
-
-        return LumigoRequestExecutor.execute(event, context, supplier)
     }
 
     private fun getEnv(key: String): String {

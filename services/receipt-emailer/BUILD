@@ -11,8 +11,6 @@ kt_jvm_library(
             "@re_deps//:com_amazonaws_aws_lambda_java_events",
             "@re_deps//:com_amazonaws_aws_lambda_java_core",
             "@re_deps//:com_google_code_gson_gson",
-            "@re_deps//:io_lumigo_java_tracer",
-            "@re_deps//:io_lumigo_lumigo_agent",
             "@re_deps//:com_sendgrid_sendgrid_java",
         ],
 )
