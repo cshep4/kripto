@@ -11,7 +11,6 @@ import com.cshep4.kripto.receiptemailer.result.EmailResult
 import com.cshep4.kripto.receiptemailer.util.Gson
 import com.sendgrid.SendGrid
 import org.litote.kmongo.KMongo
-import java.util.function.Supplier
 import kotlin.system.exitProcess
 
 
@@ -35,7 +34,7 @@ class Handler : RequestHandler<SQSEvent, Unit> {
                 is IdempotencyResult.Success -> {
                     if (i.exists) {
                         logger?.log("msg_already_processed - trade: " + gson.toJson(trade))
-                        return@Supplier
+                        return@forEach
                     }
                 }
             }
