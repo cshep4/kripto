@@ -9,7 +9,7 @@ class Decider:
     def __init__(self, logger: logging.Logger):
         self.logger = logger
         self.rolling_window = 60
-        self.base_column = "rate" # price/rate
+        self.base_column = "p" # price/rate
         self.ema_short_span = 9*60*24
         self.ema_long_span = 21*60*24
         self.trade_percentage = 0.15
