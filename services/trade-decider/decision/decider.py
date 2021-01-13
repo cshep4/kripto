@@ -49,12 +49,12 @@ class Decider:
         if ontop_now == 's' and ontop_prev == 'l':
             trade_type = "buy"
             decision = True
-            amount = buy_bitcoin_with_USD(usd,trade_percentage,price)
+            amount = buy_bitcoin_with_USD(usd,self.trade_percentage,price)
 
         if ontop_now == 'l' and ontop_prev == 's':
             decision = True
             trade_type = "sell"
-            amount = sell_bitcoin_for_USD(bitcoin,trade_percentage,price)
+            amount = sell_bitcoin_for_USD(bitcoin,self.trade_percentage,price)
         properties = {
             "ontop_now":ontop_now,
             "ontop_prev":ontop_prev,
