@@ -1,8 +1,5 @@
 import logging
-import random
-from decimal import Decimal
 import pandas as pd
-from model.rate import Rate
 
 
 class Decider:
