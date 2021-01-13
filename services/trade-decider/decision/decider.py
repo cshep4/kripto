@@ -9,14 +9,14 @@ class Decider:
         self.base_column = "rate" # price/rate
         self.ema_short_span = 9*60*24
         self.ema_long_span = 21*60*24
+        self.trade_percentage = 0.15
+        self.trade_commission = 0.03
 
     def decide(self,
         data: dict,
-        bitcoin,
-        usd,
-        trade_percentage,
-        trade_commission
-            )-> (bool, float, str, dict):
+        bitcoin: float,
+        usd: float
+              )-> (bool, float, str, dict):
         decision = False
         df_limited = pd.DataFrame.from_dict(data)
         df_limited['rolling'] = df_limited[self.base_column].rolling(self.rolling_window).mean()
@@ -46,12 +46,12 @@ class Decider:
         if ontop_now == 's' and ontop_prev == 'l':
             trade_type = "buy"
             decision = True
-            amount = buy_bitcoin_with_USD(usd,trade_percentage,price)
+            amount = buy_bitcoin_with_USD(usd,self.trade_percentage,price)
 
         if ontop_now == 'l' and ontop_prev == 's':
             decision = True
             trade_type = "sell"
-            amount = sell_bitcoin_for_USD(bitcoin,trade_percentage,price)
+            amount = sell_bitcoin_for_USD(bitcoin,self.trade_percentage,price)
         properties = {
             "ontop_now":ontop_now,
             "ontop_prev":ontop_prev,
