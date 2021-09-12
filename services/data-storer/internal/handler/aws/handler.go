@@ -8,8 +8,9 @@ import (
 	"time"
 
 	"github.com/aws/aws-lambda-go/events"
+	"github.com/cshep4/go-log"
 	"github.com/cshep4/kripto/services/data-storer/internal/model"
-	"github.com/cshep4/kripto/shared/go/log"
+	"go.uber.org/zap"
 )
 
 type (
@@ -33,10 +34,22 @@ func (i InvalidParameterError) Error() string {
 	return fmt.Sprintf("invalid parameter %s", i.Parameter)
 }
 
+func (h *Handler) IsInitialised() bool {
+	return h.Service != nil
+}
+
+func (h *Handler) Functions() map[string]interface{} {
+	return map[string]interface{}{
+		"data-reader":  h.Get,
+		"trade-writer": h.StoreTrade,
+		"rate-writer":  h.StoreRate,
+	}
+}
+
 func (h *Handler) Get(ctx context.Context) ([]model.Rate, error) {
 	rates, err := h.Service.Get(ctx)
 	if err != nil {
-		log.Error(ctx, "error_getting_data", log.ErrorParam(err))
+		log.Error(ctx, "error_getting_data", zap.Error(err))
 		return nil, err
 	}
 
@@ -52,18 +65,18 @@ func (h *Handler) StoreTrade(ctx context.Context, sqsEvent events.SQSEvent) erro
 		var req model.TradeRequest
 		err := json.Unmarshal([]byte(msg.Body), &req)
 		if err != nil {
-			log.Error(ctx, "invalid_msg_body", log.ErrorParam(err))
+			log.Error(ctx, "invalid_msg_body", zap.Error(err))
 			continue
 		}
 
 		trade, err := req.ToTrade()
 		if err != nil {
 			log.Error(ctx, "invalid_msg_body",
-				log.SafeParam("id", req.Id),
-				log.SafeParam("funds", req.Funds),
-				log.SafeParam("btc", req.FilledSize),
-				log.SafeParam("gbp", req.ExecutedValue),
-				log.ErrorParam(err),
+				zap.String("id", req.Id),
+				zap.String("funds", req.Funds),
+				zap.String("btc", req.FilledSize),
+				zap.String("gbp", req.ExecutedValue),
+				zap.Error(err),
 			)
 			continue
 		}
@@ -71,11 +84,11 @@ func (h *Handler) StoreTrade(ctx context.Context, sqsEvent events.SQSEvent) erro
 		err = h.Service.StoreTrade(ctx, trade)
 		if err != nil {
 			log.Error(ctx, "error_storing_trade",
-				log.SafeParam("id", trade.Id),
-				log.SafeParam("createdAt", trade.CreatedAt),
-				log.SafeParam("btc", trade.Value.BTC),
-				log.SafeParam("gbp", trade.Value.GBP),
-				log.ErrorParam(err),
+				zap.String("id", trade.Id),
+				zap.Time("createdAt", trade.CreatedAt),
+				zap.Float64("btc", trade.Value.BTC),
+				zap.Float64("gbp", trade.Value.GBP),
+				zap.Error(err),
 			)
 			return err
 		}
@@ -93,16 +106,16 @@ func (h *Handler) StoreRate(ctx context.Context, sqsEvent events.SQSEvent) error
 		var req model.StoreRateRequest
 		err := json.Unmarshal([]byte(msg.Body), &req)
 		if err != nil {
-			log.Error(ctx, "invalid_msg_body", log.ErrorParam(err))
+			log.Error(ctx, "invalid_msg_body", zap.Error(err))
 			continue
 		}
 
 		err = h.Service.StoreRate(ctx, req.Rate, req.DateTime)
 		if err != nil {
 			log.Error(ctx, "error_storing_rate",
-				log.SafeParam("rate", req.Rate),
-				log.SafeParam("dateTime", req.DateTime),
-				log.ErrorParam(err),
+				zap.Float64("rate", req.Rate),
+				zap.Time("dateTime", req.DateTime),
+				zap.Error(err),
 			)
 			return err
 		}

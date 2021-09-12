@@ -48,6 +48,11 @@ functions:
         - services/data-storer/bin/data-reader
     environment:
       MONGO_URI: ${self:custom.secrets.mongoUri}
+    events:
+      - http:
+          path: rates
+          method: get
+          cors: true
   rate-writer:
     runtime: go1.x
     memorySize: 128

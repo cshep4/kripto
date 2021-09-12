@@ -8,13 +8,13 @@ import (
 	"time"
 
 	"github.com/aws/aws-lambda-go/events"
-	"github.com/cshep4/kripto/services/data-storer/internal/handler/aws"
-	"github.com/cshep4/kripto/services/data-storer/internal/mocks/service"
-	"github.com/cshep4/kripto/services/data-storer/internal/model"
-	"github.com/cshep4/kripto/shared/go/log"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/cshep4/kripto/services/data-storer/internal/handler/aws"
+	"github.com/cshep4/kripto/services/data-storer/internal/mocks/service"
+	"github.com/cshep4/kripto/services/data-storer/internal/model"
 )
 
 func TestHandler_StoreTrade(t *testing.T) {
@@ -27,10 +27,9 @@ func TestHandler_StoreTrade(t *testing.T) {
 			handler = aws.Handler{
 				Service: service,
 			}
-			ctx = log.WithServiceName(context.Background(), log.New("debug"), "test")
 		)
 
-		err := handler.StoreTrade(ctx, events.SQSEvent{})
+		err := handler.StoreTrade(context.Background(), events.SQSEvent{})
 		require.Error(t, err)
 
 		assert.Equal(t, "no sqs message passed to function", err.Error())
@@ -45,7 +44,6 @@ func TestHandler_StoreTrade(t *testing.T) {
 			handler = aws.Handler{
 				Service: service,
 			}
-			ctx   = log.WithServiceName(context.Background(), log.New("debug"), "test")
 			event = events.SQSEvent{
 				Records: []events.SQSMessage{{
 					Body: "invalid",
@@ -55,7 +53,7 @@ func TestHandler_StoreTrade(t *testing.T) {
 
 		service.EXPECT().StoreTrade(gomock.Any(), gomock.Any()).Times(0)
 
-		err := handler.StoreTrade(ctx, event)
+		err := handler.StoreTrade(context.Background(), event)
 		require.NoError(t, err)
 	})
 
@@ -68,7 +66,6 @@ func TestHandler_StoreTrade(t *testing.T) {
 			handler = aws.Handler{
 				Service: service,
 			}
-			ctx   = log.WithServiceName(context.Background(), log.New("debug"), "test")
 			event = events.SQSEvent{
 				Records: []events.SQSMessage{{
 					Body: `{
@@ -81,7 +78,7 @@ func TestHandler_StoreTrade(t *testing.T) {
 
 		service.EXPECT().StoreTrade(gomock.Any(), gomock.Any()).Times(0)
 
-		err := handler.StoreTrade(ctx, event)
+		err := handler.StoreTrade(context.Background(), event)
 		require.NoError(t, err)
 	})
 
@@ -94,7 +91,7 @@ func TestHandler_StoreTrade(t *testing.T) {
 			handler = aws.Handler{
 				Service: service,
 			}
-			ctx   = log.WithServiceName(context.Background(), log.New("debug"), "test")
+			ctx   = context.Background()
 			event = events.SQSEvent{
 				Records: []events.SQSMessage{{
 					Body: `{
@@ -139,7 +136,7 @@ func TestHandler_StoreTrade(t *testing.T) {
 			handler = aws.Handler{
 				Service: service,
 			}
-			ctx   = log.WithServiceName(context.Background(), log.New("debug"), "test")
+			ctx   = context.Background()
 			event = events.SQSEvent{
 				Records: []events.SQSMessage{{
 					Body: `{
@@ -224,7 +221,7 @@ func TestHandler_StoreRate(t *testing.T) {
 			handler = aws.Handler{
 				Service: service,
 			}
-			ctx   = log.WithServiceName(context.Background(), log.New("debug"), "test")
+			ctx   = context.Background()
 			now   = time.Now().UTC().Round(time.Second)
 			rate  = 123.45
 			event = events.SQSEvent{
@@ -255,10 +252,10 @@ func TestHandler_StoreRate(t *testing.T) {
 			handler = aws.Handler{
 				Service: service,
 			}
-			ctx            = log.WithServiceName(context.Background(), log.New("debug"), "test")
-			now            = time.Now().UTC().Round(time.Second)
-			rate           = 123.45
-			event          = events.SQSEvent{
+			ctx   = context.Background()
+			now   = time.Now().UTC().Round(time.Second)
+			rate  = 123.45
+			event = events.SQSEvent{
 				Records: []events.SQSMessage{{
 					Body: fmt.Sprintf(`{
 						"rate": %v,

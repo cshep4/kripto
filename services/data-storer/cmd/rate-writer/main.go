@@ -4,16 +4,17 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/cshep4/lambda-go/idempotency"
+	idempotent "github.com/cshep4/lambda-go/idempotency/middleware"
+	"github.com/cshep4/lambda-go/idempotency/middleware/sqs"
+	"github.com/cshep4/lambda-go/lambda"
+	"github.com/cshep4/lambda-go/log/v2"
+	"github.com/cshep4/lambda-go/mongodb"
+
 	"github.com/cshep4/kripto/services/data-storer/internal/handler/aws"
 	"github.com/cshep4/kripto/services/data-storer/internal/service"
 	rate "github.com/cshep4/kripto/services/data-storer/internal/store/rate/mongo"
 	trade "github.com/cshep4/kripto/services/data-storer/internal/store/trade/mongo"
-	"github.com/cshep4/kripto/shared/go/idempotency"
-	idempotent "github.com/cshep4/kripto/shared/go/idempotency/middleware"
-	"github.com/cshep4/kripto/shared/go/idempotency/middleware/sqs"
-	"github.com/cshep4/kripto/shared/go/lambda"
-	"github.com/cshep4/kripto/shared/go/log"
-	"github.com/cshep4/kripto/shared/go/mongodb"
 )
 
 const (
@@ -23,25 +24,20 @@ const (
 )
 
 var (
-	cfg = lambda.FunctionConfig{
-		LogLevel:     logLevel,
-		ServiceName:  serviceName,
-		FunctionName: functionName,
-		Setup:        setup,
-		Initialised:  func() bool { return handler.Service != nil && middleware != nil },
-	}
-
-	handler    aws.Handler
+	handler    = &aws.Handler{}
 	middleware idempotent.Middleware
 
 	runner = lambda.New(
-		handler.StoreRate,
+		functionName,
+		handler,
+		lambda.WithServiceName(serviceName),
+		lambda.WithLogLevel(logLevel),
 		lambda.WithPreExecute(log.Middleware(logLevel, serviceName, functionName)),
 	)
 )
 
 func main() {
-	runner.Start(cfg)
+	runner.Start(setup)
 }
 
 func setup(ctx context.Context) error {
