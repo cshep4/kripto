@@ -67,9 +67,9 @@ func initCoinbaseProClient(s secrets.Secrets) *coinbasepro.Client {
 	if s.MockTrade {
 		coinbaseClient.UpdateConfig(&coinbasepro.ClientConfig{
 			BaseURL:    "https://api-public.sandbox.pro.coinbase.com",
-			Key:        s.CoinbaseProSandbox.Key,
-			Passphrase: s.CoinbaseProSandbox.Passphrase,
-			Secret:     s.CoinbaseProSandbox.Secret,
+			Key:        s.CoinbasePro.Sandbox.Key,
+			Passphrase: s.CoinbasePro.Sandbox.Passphrase,
+			Secret:     s.CoinbasePro.Sandbox.Secret,
 		})
 	}
 	return coinbaseClient

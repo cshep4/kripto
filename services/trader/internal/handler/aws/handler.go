@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/cshep4/kripto/services/trader/internal/model"
+	"strconv"
 
 	"github.com/cshep4/kripto/shared/go/log"
 )
@@ -45,7 +46,12 @@ func (h *Handler) Trade(ctx context.Context, req TradeRequest) error {
 		return BadRequestError{Parameter: "amount", Err: "empty"}
 	}
 
-	err := h.Service.Trade(ctx, req.TradeType, req.Amount)
+	a, err := strconv.ParseFloat(req.Amount, 64)
+	if err != nil {
+		return BadRequestError{Parameter: "amount", Err: "invalid value - should be numeric"}
+	}
+
+	err = h.Service.Trade(ctx, req.TradeType, fmt.Sprintf("%.2f", a))
 	if err != nil {
 		log.Error(ctx, "error_trading",
 			log.ErrorParam(err),

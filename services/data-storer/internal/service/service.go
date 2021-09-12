@@ -11,7 +11,7 @@ import (
 type (
 	RateStore interface {
 		Store(ctx context.Context, rate float64, dateTime time.Time) error
-		GetPreviousWeeks(ctx context.Context) ([]model.Rate, error)
+		GetPreviousMonth(ctx context.Context) ([]model.Rate, error)
 	}
 
 	TradeStore interface {
@@ -49,7 +49,7 @@ func New(rateStore RateStore, tradeStore TradeStore) (*service, error) {
 }
 
 func (s *service) Get(ctx context.Context) ([]model.Rate, error) {
-	rates, err := s.rateStore.GetPreviousWeeks(ctx)
+	rates, err := s.rateStore.GetPreviousMonth(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("get_rates: %w", err)
 	}

@@ -5,10 +5,12 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/cshep4/kripto/services/data-storer/internal/model"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/x/bsonx"
+
+	"github.com/cshep4/kripto/services/data-storer/internal/model"
 )
 
 const (
@@ -18,7 +20,8 @@ const (
 
 type (
 	store struct {
-		client *mongo.Client
+		client     *mongo.Client
+		collection *mongo.Collection
 	}
 
 	// InvalidParameterError is returned when a required parameter passed to New is invalid.
@@ -37,7 +40,8 @@ func New(ctx context.Context, client *mongo.Client) (*store, error) {
 	}
 
 	s := &store{
-		client: client,
+		client:     client,
+		collection: client.Database(db).Collection(collection),
 	}
 
 	if err := s.ping(ctx); err != nil {
@@ -52,21 +56,19 @@ func New(ctx context.Context, client *mongo.Client) (*store, error) {
 }
 
 func (s *store) ensureIndexes(ctx context.Context) error {
-	_, err := s.client.
-		Database(db).
-		Collection(collection).
-		Indexes().CreateOne(
-		ctx,
-		mongo.IndexModel{
-			Keys: bsonx.Doc{
-				{Key: "createdAt", Value: bsonx.Int64(1)},
+	_, err := s.collection.Indexes().
+		CreateOne(
+			ctx,
+			mongo.IndexModel{
+				Keys: bsonx.Doc{
+					{Key: "createdAt", Value: bsonx.Int64(1)},
+				},
+				Options: options.Index().
+					SetName("createdAtIdx").
+					SetUnique(true).
+					SetBackground(true),
 			},
-			Options: options.Index().
-				SetName("createdAtIdx").
-				SetUnique(true).
-				SetBackground(true),
-		},
-	)
+		)
 	if err != nil {
 		return err
 	}
@@ -80,10 +82,7 @@ func (s *store) Store(ctx context.Context, trade model.Trade) error {
 		return fmt.Errorf("map_document: %w", err)
 	}
 
-	_, err = s.client.
-		Database(db).
-		Collection(collection).
-		InsertOne(ctx, t)
+	_, err = s.collection.InsertOne(ctx, t)
 	if err != nil {
 		return fmt.Errorf("insert_one: %w", err)
 	}
@@ -92,7 +91,47 @@ func (s *store) Store(ctx context.Context, trade model.Trade) error {
 }
 
 func (s *store) GetPreviousWeeks(ctx context.Context) ([]model.Trade, error) {
-	panic("implement me")
+	cur, err := s.collection.Find(
+		ctx,
+		bson.D{
+			{
+				Key: "dateTime",
+				Value: bson.D{
+					{
+						Key:   "$gte",
+						Value: time.Now().AddDate(0, 0, -7),
+					},
+				},
+			},
+		},
+		&options.FindOptions{
+			Sort: bson.D{
+				bson.E{Key: "dateTime", Value: -1},
+			},
+		},
+	)
+	if err != nil {
+		return nil, fmt.Errorf("find: %w", err)
+	}
+
+	var trades []model.Trade
+	defer cur.Close(ctx)
+
+	for cur.Next(ctx) {
+		var t trade
+		err := cur.Decode(&t)
+		if err != nil {
+			return nil, fmt.Errorf("decode: %w", err)
+		}
+
+		trades = append(trades, toTrade(t))
+	}
+
+	if err := cur.Err(); err != nil {
+		return nil, fmt.Errorf("cursor_err: %w", err)
+	}
+
+	return trades, nil
 }
 
 func (s *store) ping(ctx context.Context) error {

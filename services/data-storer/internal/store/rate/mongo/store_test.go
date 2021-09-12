@@ -97,8 +97,8 @@ func TestNew(t *testing.T) {
 	})
 }
 
-func TestStore_GetPreviousWeeks(t *testing.T) {
-	t.Run("get all rates from the past week", func(t *testing.T) {
+func TestStore_GetPreviousMonth(t *testing.T) {
+	t.Run("get all rates from the past month", func(t *testing.T) {
 		ctx := context.Background()
 
 		client := newClient(t, ctx)
@@ -116,10 +116,10 @@ func TestStore_GetPreviousWeeks(t *testing.T) {
 		})
 
 		var (
-			now        = time.Now().Round(time.Second).UTC()
-			yesterday  = time.Now().AddDate(0, 0, -1).Round(time.Second).UTC()
-			lastWeek   = time.Now().AddDate(0, 0, -8).Round(time.Second).UTC()
-			weekBefore = time.Now().AddDate(0, 0, -15).Round(time.Second).UTC()
+			now         = time.Now().Round(time.Second).UTC()
+			yesterday   = time.Now().AddDate(0, 0, -1).Round(time.Second).UTC()
+			lastMonth   = time.Now().AddDate(0, -1, -8).Round(time.Second).UTC()
+			monthBefore = time.Now().AddDate(0, -2, -15).Round(time.Second).UTC()
 		)
 		const (
 			one   = float64(1)
@@ -131,16 +131,16 @@ func TestStore_GetPreviousWeeks(t *testing.T) {
 		err = store.Store(ctx, one, now)
 		require.NoError(t, err)
 
-		err = store.Store(ctx, two, weekBefore)
+		err = store.Store(ctx, two, monthBefore)
 		require.NoError(t, err)
 
-		err = store.Store(ctx, three, lastWeek)
+		err = store.Store(ctx, three, lastMonth)
 		require.NoError(t, err)
 
 		err = store.Store(ctx, four, yesterday)
 		require.NoError(t, err)
 
-		rates, err := store.GetPreviousWeeks(ctx)
+		rates, err := store.GetPreviousMonth(ctx)
 		require.NoError(t, err)
 
 		assert.Len(t, rates, 2)
@@ -177,7 +177,7 @@ func TestStore_Store(t *testing.T) {
 		err = store.Store(ctx, rate, now)
 		require.NoError(t, err)
 
-		rates, err := store.GetPreviousWeeks(ctx)
+		rates, err := store.GetPreviousMonth(ctx)
 		require.NoError(t, err)
 
 		assert.Len(t, rates, 1)

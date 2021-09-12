@@ -69,9 +69,6 @@ dependencies {
     implementation 'com.google.code.gson:gson:2.8.6'
     implementation files('../../shared/java/idempotency/build/libs/idempotency.jar')
 
-    compile group: 'io.lumigo', name: 'java-tracer', version: '1.0.30'
-    compile group: 'io.lumigo', name: 'lumigo-agent', version: '1.0.30'
-
     compile group: 'com.sendgrid', name: 'sendgrid-java', version: '4.5.0'
 
     testCompile 'junit:junit:4.11'
