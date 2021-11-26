@@ -40,9 +40,10 @@ func (h *Handler) IsInitialised() bool {
 
 func (h *Handler) Functions() map[string]interface{} {
 	return map[string]interface{}{
-		"data-reader":  h.Get,
-		"trade-writer": h.StoreTrade,
-		"rate-writer":  h.StoreRate,
+		"data-reader":      h.Get,
+		"data-reader-http": h.GetRates,
+		"trade-writer":     h.StoreTrade,
+		"rate-writer":      h.StoreRate,
 	}
 }
 
@@ -54,6 +55,31 @@ func (h *Handler) Get(ctx context.Context) ([]model.Rate, error) {
 	}
 
 	return rates, nil
+}
+
+func (h *Handler) GetRates(ctx context.Context) (*events.APIGatewayProxyResponse, error) {
+	rates, err := h.Service.Get(ctx)
+	if err != nil {
+		log.Error(ctx, "error_getting_data", zap.Error(err))
+		return &events.APIGatewayProxyResponse{
+			StatusCode: 500,
+			Body:       err.Error(),
+		}, nil
+	}
+
+	body, err := json.Marshal(rates)
+	if err != nil {
+		log.Error(ctx, "error_marshalling_body", zap.Error(err))
+		return &events.APIGatewayProxyResponse{
+			StatusCode: 500,
+			Body:       err.Error(),
+		}, nil
+	}
+
+	return &events.APIGatewayProxyResponse{
+		StatusCode: 200,
+		Body:       string(body),
+	}, nil
 }
 
 func (h *Handler) StoreTrade(ctx context.Context, sqsEvent events.SQSEvent) error {

@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"os"
 
 	"github.com/cshep4/lambda-go/lambda"
 	"github.com/cshep4/lambda-go/log/v2"
@@ -15,12 +16,13 @@ import (
 )
 
 const (
-	logLevel     = "info"
-	serviceName  = "data-storer"
-	functionName = "data-reader"
+	logLevel    = "info"
+	serviceName = "data-storer"
 )
 
 var (
+	functionName = os.Getenv("FUNCTION_NAME")
+
 	handler = &aws.Handler{}
 
 	runner = lambda.New(

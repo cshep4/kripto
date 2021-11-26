@@ -47,6 +47,17 @@ functions:
       include:
         - services/data-storer/bin/data-reader
     environment:
+      FUNCTION_NAME: data-reader
+      MONGO_URI: ${self:custom.secrets.mongoUri}
+  data-reader-http:
+    runtime: go1.x
+    memorySize: 128
+    handler: services/data-storer/bin/data-reader
+    package:
+      include:
+        - services/data-storer/bin/data-reader
+    environment:
+      FUNCTION_NAME: data-reader-http
       MONGO_URI: ${self:custom.secrets.mongoUri}
     events:
       - http:
@@ -167,7 +178,7 @@ functions:
   receipt-emailer:
     runtime: java11
     memorySize: 512
-    timeout: 120
+    timeout: 30
     handler: com.cshep4.kripto.receiptemailer.handler.Handler
     environment:
       SEND_GRID_API_KEY: ${self:custom.secrets.sendGridApiKey}
