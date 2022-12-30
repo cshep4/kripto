@@ -4,7 +4,7 @@ go 1.14
 
 require (
 	github.com/Netflix/go-env v0.0.0-20200512170851-5660fe1ab40a
-	github.com/aws/aws-sdk-go v1.31.0
+	github.com/aws/aws-sdk-go v1.33.0
 	github.com/cshep4/kripto/shared/go/idempotency v0.0.0-00010101000000-000000000000
 	github.com/cshep4/kripto/shared/go/lambda v0.0.0-00010101000000-000000000000
 	github.com/cshep4/kripto/shared/go/log v0.0.0-00010101000000-000000000000
